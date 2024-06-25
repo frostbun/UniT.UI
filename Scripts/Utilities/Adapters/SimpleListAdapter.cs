@@ -1,15 +1,15 @@
-﻿#nullable enable
-namespace UniT.UI.Adapters
+#nullable enable
+namespace UniT.UI.Utilities.Adapters
 {
     using System.Collections.Generic;
     using UniT.Extensions;
     using UniT.UI.View;
     using UnityEngine;
 
-    public abstract class RecyclerListAdapter<TParams, TView> : View where TView : IViewWithParams<TParams>
+    public abstract class SimpleListAdapter<TParams, TView> : View where TView : IViewWithParams<TParams>
     {
-        [SerializeField] private Transform content = null!;
-        [SerializeField] private TView     prefab  = default!;
+        [SerializeField] private RectTransform content = null!;
+        [SerializeField] private TView         prefab  = default!;
 
         private readonly Queue<TView>   pooledViews  = new Queue<TView>();
         private readonly HashSet<TView> spawnedViews = new HashSet<TView>();
@@ -31,11 +31,6 @@ namespace UniT.UI.Adapters
                 view.Params = @params;
                 view.OnShow();
             });
-        }
-
-        protected override void OnHide()
-        {
-            this.HideAll();
         }
 
         private void HideAll()

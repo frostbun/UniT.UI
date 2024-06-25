@@ -63,6 +63,10 @@ namespace UniT.UI
 
         public void Dispose(IActivity activity, bool autoStack = true);
 
+        public void Show<TActivity>(bool force = false) where TActivity : IActivityWithoutParams => this.Show(this.GetActivity<TActivity>(), force);
+
+        public void Show<TActivity, TParams>(TParams @params, bool force = true) where TActivity : IActivityWithParams<TParams> => this.Show(this.GetActivity<TActivity>(), @params, force);
+
         #endregion
     }
 }
