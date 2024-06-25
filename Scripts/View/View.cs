@@ -4,9 +4,6 @@ namespace UniT.UI.View
     using UniT.Extensions;
     using UniT.UI.Activity;
     using UnityEngine;
-    #if UNIT_UNITASK
-    using System.Threading;
-    #endif
 
     [RequireComponent(typeof(RectTransform))]
     public abstract class BaseView : BetterMonoBehavior, IView
@@ -23,37 +20,15 @@ namespace UniT.UI.View
 
         public GameObject GameObject => this.gameObject;
 
-        public RectTransform Transform { get; private set; } = null!;
+        public RectTransform Transform => this.transform ??= (RectTransform)base.transform;
 
-        void IView.OnInitialize()
-        {
-            this.Transform = (RectTransform)this.transform;
-            this.OnInitialize();
-        }
+        private new RectTransform? transform;
 
-        void IView.OnShow()
-        {
-            this.OnShow();
-        }
+        void IView.OnInitialize() => this.OnInitialize();
 
-        void IView.OnHide()
-        {
-            #if UNIT_UNITASK
-            this.hideCts?.Cancel();
-            this.hideCts?.Dispose();
-            this.hideCts = null;
-            #endif
-            this.OnHide();
-        }
+        void IView.OnShow() => this.OnShow();
 
-        #if UNIT_UNITASK
-        private CancellationTokenSource? hideCts;
-
-        public CancellationToken GetCancellationTokenOnHide()
-        {
-            return (this.hideCts ??= new CancellationTokenSource()).Token;
-        }
-        #endif
+        void IView.OnHide() => this.OnHide();
 
         protected virtual void OnInitialize() { }
 

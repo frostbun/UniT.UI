@@ -3,7 +3,6 @@ namespace UniT.UI.View.Presenter
 {
     using UniT.UI.Activity;
     using UniT.UI.Presenter;
-    using UnityEngine;
     #if UNIT_UNITASK
     using System.Threading;
     #else
@@ -20,7 +19,7 @@ namespace UniT.UI.View.Presenter
         protected IActivity Activity => this.Owner.Activity;
 
         #if UNIT_UNITASK
-        protected CancellationToken GetCancellationTokenOnRecycle() => this.Owner.GetCancellationTokenOnHide();
+        protected CancellationToken GetCancellationTokenOnDisable() => this.Owner.GetCancellationTokenOnDisable();
         #else
         protected void StartCoroutine(IEnumerator coroutine) => this.Owner.StartCoroutine(coroutine);
 

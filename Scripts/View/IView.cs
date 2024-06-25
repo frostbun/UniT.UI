@@ -29,7 +29,7 @@ namespace UniT.UI.View
         public void OnHide();
 
         #if UNIT_UNITASK
-        public CancellationToken GetCancellationTokenOnHide();
+        public CancellationToken GetCancellationTokenOnDisable();
         #else
         public void StartCoroutine(IEnumerator coroutine);
 
