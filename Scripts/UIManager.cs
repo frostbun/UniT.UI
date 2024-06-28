@@ -83,7 +83,9 @@ namespace UniT.UI
 
         #region Query
 
-        IScreen? IUIManager.CurrentScreen => this.screensStack.LastOrDefault() is { CurrentStatus: IActivity.Status.Showing } screen ? screen : null;
+        IScreen? IUIManager.CurrentScreen => this.screensStack.LastOrDefault(screen => screen.CurrentStatus is IActivity.Status.Showing);
+
+        IScreen? IUIManager.PreviousScreen => this.screensStack.LastOrDefault(screen => screen.CurrentStatus is IActivity.Status.Hidden);
 
         IEnumerable<IPopup> IUIManager.CurrentPopups => this.activities.Keys.OfType<IPopup>().Where(activity => activity.CurrentStatus is IActivity.Status.Showing);
 
@@ -135,14 +137,14 @@ namespace UniT.UI
                 owner.Presenter = presenter;
             }
             view.OnInitialize();
-            this.logger.Debug($"{view.Name} initialized");
+            this.logger.Debug($"{view.gameObject.name} initialized");
         }
 
         private TActivity RegisterActivity<TActivity>(TActivity activity) where TActivity : IActivity
         {
             this.activities.TryAdd(activity, () =>
             {
-                var views = activity.GetComponentsInChildren<IView>();
+                var views = activity.gameObject.GetComponentsInChildren<IView>();
                 views.ForEach(view => this.Initialize(view, activity));
                 return views;
             });
@@ -153,7 +155,7 @@ namespace UniT.UI
         {
             return (TActivity)this.prefabToInstance.GetOrAdd(prefab, () =>
             {
-                var activity = Object.Instantiate(prefab.GameObject, this.canvas.Hiddens, false).GetComponent<IActivity>();
+                var activity = Object.Instantiate(prefab.gameObject, this.canvas.Hiddens, false).GetComponent<IActivity>();
                 this.instanceToPrefab.Add(activity, prefab);
                 if (key is { }) this.instanceToKey.Add(activity, key);
                 this.RegisterActivity(activity);
@@ -188,7 +190,7 @@ namespace UniT.UI
         private void Show(IActivity activity)
         {
             if (activity is IScreen screen) this.SetStackTop(screen);
-            activity.Transform.SetParent(
+            activity.gameObject.transform.SetParent(
                 activity switch
                 {
                     IScreen  => this.canvas.Screens,
@@ -198,8 +200,8 @@ namespace UniT.UI
                 },
                 false
             );
-            activity.Transform.SetAsLastSibling();
-            this.logger.Debug($"{activity.Name} status: {activity.CurrentStatus = IActivity.Status.Showing}");
+            activity.gameObject.transform.SetAsLastSibling();
+            this.logger.Debug($"{activity.gameObject.name} status: {activity.CurrentStatus = IActivity.Status.Showing}");
             this.activities[activity].ForEach(view => view.OnShow());
         }
 
@@ -207,9 +209,9 @@ namespace UniT.UI
         {
             if (activity.CurrentStatus is not IActivity.Status.Hidden)
             {
-                this.logger.Debug($"{activity.Name} status: {activity.CurrentStatus = IActivity.Status.Hidden}");
+                this.logger.Debug($"{activity.gameObject.name} status: {activity.CurrentStatus = IActivity.Status.Hidden}");
                 this.activities[activity].ForEach(view => view.OnHide());
-                activity.Transform.SetParent(this.canvas.Hiddens, false);
+                activity.gameObject.transform.SetParent(this.canvas.Hiddens, false);
             }
             if (autoStack && this.screensStack.LastOrDefault() is { CurrentStatus: IActivity.Status.Hidden } nextScreen)
             {
@@ -225,8 +227,8 @@ namespace UniT.UI
             {
                 this.prefabToInstance.Remove(prefab);
             }
-            this.logger.Debug($"{activity.Name} status: {activity.CurrentStatus = IActivity.Status.Disposed}");
-            Object.Destroy(activity.GameObject);
+            this.logger.Debug($"{activity.gameObject.name} status: {activity.CurrentStatus = IActivity.Status.Disposed}");
+            Object.Destroy(activity.gameObject);
             if (this.instanceToKey.TryRemove(activity, out var key))
             {
                 this.assetsManager.Unload(key);

@@ -6,7 +6,7 @@ namespace UniT.UI.Utilities.Adapters
     using UniT.UI.View;
     using UnityEngine;
 
-    public abstract class SimpleListAdapter<TParams, TView> : View where TView : IViewWithParams<TParams>
+    public abstract class SimpleViewAdapter<TParams, TView> : View where TView : IViewWithParams<TParams>
     {
         [SerializeField] private RectTransform content = null!;
         [SerializeField] private TView         prefab  = default!;
@@ -21,12 +21,12 @@ namespace UniT.UI.Utilities.Adapters
             {
                 var view = this.pooledViews.DequeueOrDefault(() =>
                 {
-                    var view = Instantiate(this.prefab.GameObject, this.content).GetComponent<TView>();
+                    var view = Instantiate(this.prefab.gameObject, this.content).GetComponent<TView>();
                     this.Manager.Initialize(view, this.Activity);
                     return view;
                 });
-                view.Transform.SetAsLastSibling();
-                view.GameObject.SetActive(true);
+                view.gameObject.transform.SetAsLastSibling();
+                view.gameObject.SetActive(true);
                 this.spawnedViews.Add(view);
                 view.Params = @params;
                 view.OnShow();
@@ -38,7 +38,7 @@ namespace UniT.UI.Utilities.Adapters
             this.spawnedViews.Clear(view =>
             {
                 view.OnHide();
-                view.GameObject.SetActive(false);
+                view.gameObject.SetActive(false);
                 this.pooledViews.Enqueue(view);
             });
         }

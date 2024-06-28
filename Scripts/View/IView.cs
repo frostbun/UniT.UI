@@ -16,12 +16,6 @@ namespace UniT.UI.View
 
         public IActivity Activity { get; set; }
 
-        public string Name { get; }
-
-        public GameObject GameObject { get; }
-
-        public RectTransform Transform { get; }
-
         public void OnInitialize();
 
         public void OnShow();
@@ -39,6 +33,9 @@ namespace UniT.UI.View
 
         public IEnumerator GatherCoroutines(IEnumerable<IEnumerator> coroutines);
         #endif
+
+        // ReSharper disable once InconsistentNaming
+        public GameObject gameObject { get; }
     }
 
     public interface IViewWithoutParams : IView

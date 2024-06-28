@@ -47,6 +47,8 @@ namespace UniT.UI
 
         public IScreen? CurrentScreen { get; }
 
+        public IScreen? PreviousScreen { get; }
+
         public IEnumerable<IPopup> CurrentPopups { get; }
 
         public IEnumerable<IOverlay> CurrentOverlays { get; }

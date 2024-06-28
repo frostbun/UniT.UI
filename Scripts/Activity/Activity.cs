@@ -9,8 +9,6 @@ namespace UniT.UI.Activity
 
         public IActivity.Status CurrentStatus { get; private set; }
 
-        public bool IsDestroyed => !this;
-
         public void Hide(bool autoStack = true) => this.Manager.Hide(this, autoStack);
 
         public void Dispose(bool autoStack = true) => this.Manager.Dispose(this, autoStack);

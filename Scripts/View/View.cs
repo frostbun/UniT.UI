@@ -16,14 +16,6 @@ namespace UniT.UI.View
 
         public IActivity Activity { get; private set; } = null!;
 
-        public string Name => this.gameObject.name;
-
-        public GameObject GameObject => this.gameObject;
-
-        public RectTransform Transform => this.transform ??= (RectTransform)base.transform;
-
-        private new RectTransform? transform;
-
         void IView.OnInitialize() => this.OnInitialize();
 
         void IView.OnShow() => this.OnShow();

@@ -2,6 +2,8 @@
 #nullable enable
 namespace UniT.UI
 {
+    using UniT.Logging;
+    using UniT.ResourceManagement;
     using Zenject;
 
     public static class ZenjectBinder
@@ -11,6 +13,9 @@ namespace UniT.UI
             RootUICanvas     rootUICanvas
         )
         {
+            if (container.HasBinding<IUIManager>()) return;
+            container.BindLoggerManager();
+            container.BindResourceManagers();
             container.BindInstance(rootUICanvas).AsSingle();
             container.BindInterfacesTo<UIManager>().AsSingle();
         }

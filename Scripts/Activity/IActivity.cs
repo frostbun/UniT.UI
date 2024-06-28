@@ -14,10 +14,6 @@ namespace UniT.UI.Activity
 
         public Status CurrentStatus { get; set; }
 
-        public bool IsDestroyed { get; }
-
-        public T[] GetComponentsInChildren<T>();
-
         public void Hide(bool autoStack = true);
 
         public void Dispose(bool autoStack = true);
