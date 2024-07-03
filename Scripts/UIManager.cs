@@ -126,7 +126,7 @@ namespace UniT.UI
 
         #region Private
 
-        private void Initialize(IView view, IActivity parent)
+        private void Initialize(IView view, IActivity parent, bool callOnInitialize = true)
         {
             view.Manager  = this;
             view.Activity = parent;
@@ -136,7 +136,7 @@ namespace UniT.UI
                 presenter.Owner = owner;
                 owner.Presenter = presenter;
             }
-            view.OnInitialize();
+            if (callOnInitialize) view.OnInitialize();
             this.logger.Debug($"{view.gameObject.name} initialized");
         }
 
@@ -145,7 +145,8 @@ namespace UniT.UI
             this.activities.TryAdd(activity, () =>
             {
                 var views = activity.gameObject.GetComponentsInChildren<IView>();
-                views.ForEach(view => this.Initialize(view, activity));
+                views.ForEach(view => this.Initialize(view, activity, false));
+                views.ForEach(view => view.OnInitialize());
                 return views;
             });
             return activity;
