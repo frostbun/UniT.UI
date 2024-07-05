@@ -224,13 +224,13 @@ namespace UniT.UI
         {
             this.Hide(activity, autoStack);
             this.activities.Remove(activity);
-            if (this.instanceToPrefab.TryRemove(activity, out var prefab))
+            if (this.instanceToPrefab.Remove(activity, out var prefab))
             {
                 this.prefabToInstance.Remove(prefab);
             }
             this.logger.Debug($"{activity.gameObject.name} status: {activity.CurrentStatus = IActivity.Status.Disposed}");
             Object.Destroy(activity.gameObject);
-            if (this.instanceToKey.TryRemove(activity, out var key))
+            if (this.instanceToKey.Remove(activity, out var key))
             {
                 this.assetsManager.Unload(key);
             }
