@@ -37,6 +37,6 @@ namespace UniT.UI.View
     {
         TParams IViewWithParams<TParams>.Params { get => this.Params; set => this.Params = value; }
 
-        public TParams Params { get; private set; } = default!;
+        protected TParams Params { get; private set; } = default!;
     }
 }
