@@ -15,7 +15,7 @@ namespace UniT.UI
         {
             if (container.HasBinding<IUIManager>()) return;
             container.BindLoggerManager();
-            container.BindResourceManagers();
+            container.BindAssetsManager();
             container.BindInstance(rootUICanvas).AsSingle();
             container.BindInterfacesTo<UIManager>().AsSingle();
         }

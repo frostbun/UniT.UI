@@ -15,7 +15,7 @@ namespace UniT.UI
         {
             if (container.Contains<IUIManager>()) return;
             container.AddLoggerManager();
-            container.AddResourceManagers();
+            container.AddAssetsManager();
             container.Add(rootUICanvas);
             container.AddInterfaces<UIManager>();
         }
