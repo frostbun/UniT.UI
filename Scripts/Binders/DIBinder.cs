@@ -3,6 +3,7 @@
 namespace UniT.UI
 {
     using UniT.DI;
+    using UniT.Extensions;
     using UniT.Logging;
     using UniT.ResourceManagement;
     using UnityEngine;
@@ -14,7 +15,7 @@ namespace UniT.UI
             if (container.Contains<IUIManager>()) return;
             container.AddLoggerManager();
             container.AddAssetsManager();
-            container.Add(new GameObject().AddComponent<RootUICanvas>());
+            container.Add(Resources.Load<GameObject>(nameof(RootUICanvas)).GetComponentOrThrow<RootUICanvas>());
             container.AddInterfaces<UIManager>();
         }
     }

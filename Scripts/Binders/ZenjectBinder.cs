@@ -13,7 +13,7 @@ namespace UniT.UI
             if (container.HasBinding<IUIManager>()) return;
             container.BindLoggerManager();
             container.BindAssetsManager();
-            container.Bind<RootUICanvas>().FromNewComponentOnNewGameObject().AsSingle();
+            container.Bind<RootUICanvas>().FromComponentInNewPrefabResource(nameof(RootUICanvas)).AsSingle();
             container.BindInterfacesTo<UIManager>().AsSingle();
         }
     }
