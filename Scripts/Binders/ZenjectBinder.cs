@@ -8,15 +8,12 @@ namespace UniT.UI
 
     public static class ZenjectBinder
     {
-        public static void BindUIManager(
-            this DiContainer container,
-            RootUICanvas     rootUICanvas
-        )
+        public static void BindUIManager(this DiContainer container)
         {
             if (container.HasBinding<IUIManager>()) return;
             container.BindLoggerManager();
             container.BindAssetsManager();
-            container.BindInstance(rootUICanvas).AsSingle();
+            container.Bind<RootUICanvas>().FromNewComponentOnNewGameObject().AsSingle();
             container.BindInterfacesTo<UIManager>().AsSingle();
         }
     }
