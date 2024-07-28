@@ -15,7 +15,7 @@ namespace UniT.UI
             if (container.Contains<IUIManager>()) return;
             container.AddLoggerManager();
             container.AddAssetsManager();
-            container.Add(Resources.Load<GameObject>(nameof(RootUICanvas)).GetComponentOrThrow<RootUICanvas>());
+            container.Add(Resources.Load<GameObject>(nameof(RootUICanvas)).Instantiate().GetComponentOrThrow<RootUICanvas>());
             container.AddInterfaces<UIManager>();
         }
     }
