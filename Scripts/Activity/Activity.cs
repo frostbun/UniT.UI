@@ -2,7 +2,9 @@
 namespace UniT.UI.Activity
 {
     using UniT.UI.View;
+    using UnityEngine;
 
+    [DisallowMultipleComponent]
     public abstract class BaseActivity : BaseView, IActivity
     {
         IActivity.Status IActivity.CurrentStatus { get => this.CurrentStatus; set => this.CurrentStatus = value; }
