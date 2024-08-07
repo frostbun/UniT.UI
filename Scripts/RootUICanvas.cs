@@ -24,15 +24,11 @@ namespace UniT.UI
 
         private Transform CreateChild(string name)
         {
-            var child = new GameObject
-            {
-                name      = name,
-                transform = { parent = this.transform },
-            }.AddComponent<RectTransform>();
-            child.anchorMin     = Vector2.zero;
-            child.anchorMax     = Vector2.one;
-            child.sizeDelta     = Vector2.zero;
-            child.localPosition = Vector3.zero;
+            var child = new GameObject(name).AddComponent<RectTransform>();
+            child.SetParent(this.transform, false);
+            child.anchorMin = Vector2.zero;
+            child.anchorMax = Vector2.one;
+            child.sizeDelta = Vector2.zero;
             return child;
         }
     }
