@@ -6,11 +6,11 @@ namespace UniT.UI.Utilities.Buttons
     using UnityEngine.UI;
 
     [RequireComponent(typeof(Button))]
-    public sealed class CloseButton : View
+    public sealed class DisposeButton : View
     {
         protected override void OnInitialize()
         {
-            this.GetComponent<Button>().onClick.AddListener(() => this.Activity.Hide());
+            this.GetComponent<Button>().onClick.AddListener(() => this.Manager.Dispose(this.Activity));
         }
     }
 }

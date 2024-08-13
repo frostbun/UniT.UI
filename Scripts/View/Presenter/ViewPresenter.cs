@@ -3,12 +3,6 @@ namespace UniT.UI.View.Presenter
 {
     using UniT.UI.Activity;
     using UniT.UI.Presenter;
-    #if UNIT_UNITASK
-    using System.Threading;
-    #else
-    using System.Collections;
-    using System.Collections.Generic;
-    #endif
 
     public abstract class BaseViewPresenter<TView> : Presenter<TView>, IViewPresenter where TView : IView, IHasPresenter
     {
@@ -17,18 +11,6 @@ namespace UniT.UI.View.Presenter
         protected IUIManager Manager => this.Owner.Manager;
 
         protected IActivity Activity => this.Owner.Activity;
-
-        #if UNIT_UNITASK
-        protected CancellationToken GetCancellationTokenOnDisable() => this.Owner.GetCancellationTokenOnDisable();
-        #else
-        protected void StartCoroutine(IEnumerator coroutine) => this.Owner.StartCoroutine(coroutine);
-
-        protected void StopCoroutine(IEnumerator coroutine) => this.Owner.StopCoroutine(coroutine);
-
-        protected IEnumerator GatherCoroutines(params IEnumerator[] coroutines) => this.Owner.GatherCoroutines(coroutines);
-
-        protected IEnumerator GatherCoroutines(IEnumerable<IEnumerator> coroutines) => this.Owner.GatherCoroutines(coroutines);
-        #endif
 
         public virtual void OnInitialize() { }
 

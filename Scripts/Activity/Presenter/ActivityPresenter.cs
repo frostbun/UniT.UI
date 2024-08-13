@@ -10,9 +10,9 @@ namespace UniT.UI.Activity.Presenter
 
         protected IActivity.Status CurrentStatus => this.Owner.CurrentStatus;
 
-        protected void Hide(bool autoStack = true) => this.Owner.Hide(autoStack);
+        protected void Hide(bool autoStack = true) => this.Manager.Hide(this.Owner, autoStack);
 
-        protected void Dispose(bool autoStack = true) => this.Owner.Dispose(autoStack);
+        protected void Dispose(bool autoStack = true) => this.Manager.Dispose(this.Owner, autoStack);
     }
 
     public abstract class ActivityPresenter<TActivity> : BaseActivityPresenter<TActivity> where TActivity : IActivityWithoutParams, IHasPresenter
