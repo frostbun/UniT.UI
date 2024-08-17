@@ -30,11 +30,11 @@ namespace UniT.UI
         private readonly IAssetsManager       assetsManager;
         private readonly ILogger              logger;
 
-        private readonly Dictionary<IActivity, IView[]>   activities       = new Dictionary<IActivity, IView[]>();
-        private readonly List<IScreen>                    screensStack     = new List<IScreen>();
-        private readonly Dictionary<IActivity, IActivity> prefabToInstance = new Dictionary<IActivity, IActivity>();
-        private readonly Dictionary<IActivity, IActivity> instanceToPrefab = new Dictionary<IActivity, IActivity>();
-        private readonly Dictionary<IActivity, string>    instanceToKey    = new Dictionary<IActivity, string>();
+        private readonly Dictionary<IActivity, ActivityEntry> activities       = new Dictionary<IActivity, ActivityEntry>();
+        private readonly List<IScreen>                        screensStack     = new List<IScreen>();
+        private readonly Dictionary<IActivity, IActivity>     prefabToActivity = new Dictionary<IActivity, IActivity>();
+        private readonly Dictionary<IActivity, IActivity>     activityToPrefab = new Dictionary<IActivity, IActivity>();
+        private readonly Dictionary<IActivity, string>        activityToKey    = new Dictionary<IActivity, string>();
 
         [Preserve]
         public UIManager(RootUICanvas canvas, IDependencyContainer container, IAssetsManager assetsManager, ILoggerManager loggerManager)
@@ -83,17 +83,19 @@ namespace UniT.UI
 
         #region Query
 
-        IScreen? IUIManager.CurrentScreen => this.screensStack.LastOrDefault(screen => screen.CurrentStatus is IActivity.Status.Showing);
+        IScreen? IUIManager.CurrentScreen => this.screensStack.LastOrDefault(activity => this.activities[activity].Status is ActivityStatus.Showing);
 
-        IScreen? IUIManager.PreviousScreen => this.screensStack.LastOrDefault(screen => screen.CurrentStatus is IActivity.Status.Hidden);
+        IScreen? IUIManager.PreviousScreen => this.screensStack.LastOrDefault(activity => this.activities[activity].Status is ActivityStatus.Hidden);
 
-        IEnumerable<IPopup> IUIManager.CurrentPopups => this.activities.Keys.OfType<IPopup>().Where(activity => activity.CurrentStatus is IActivity.Status.Showing);
+        IEnumerable<IPopup> IUIManager.CurrentPopups => this.activities.Keys.OfType<IPopup>().Where(activity => this.activities[activity].Status is ActivityStatus.Showing);
 
-        IEnumerable<IOverlay> IUIManager.CurrentOverlays => this.activities.Keys.OfType<IOverlay>().Where(activity => activity.CurrentStatus is IActivity.Status.Showing);
+        IEnumerable<IOverlay> IUIManager.CurrentOverlays => this.activities.Keys.OfType<IOverlay>().Where(activity => this.activities[activity].Status is ActivityStatus.Showing);
 
         #endregion
 
         #region UI Flow
+
+        ActivityStatus IUIManager.GetStatus(IActivity activity) => this.activities[activity].Status;
 
         void IUIManager.Show(IActivityWithoutParams activity, bool force)
         {
@@ -126,7 +128,7 @@ namespace UniT.UI
 
         #region Private
 
-        private void Initialize(IView view, IActivity parent, bool callOnInitialize = true)
+        private void Initialize(IView view, IActivity parent)
         {
             view.Manager  = this;
             view.Activity = parent;
@@ -136,7 +138,6 @@ namespace UniT.UI
                 presenter.Owner = owner;
                 owner.Presenter = presenter;
             }
-            if (callOnInitialize) view.OnInitialize();
             this.logger.Debug($"{view.gameObject.name} initialized");
         }
 
@@ -145,20 +146,20 @@ namespace UniT.UI
             this.activities.TryAdd(activity, () =>
             {
                 var views = activity.gameObject.GetComponentsInChildren<IView>();
-                views.ForEach(view => this.Initialize(view, activity, false));
+                views.ForEach(view => this.Initialize(view, activity));
                 views.ForEach(view => view.OnInitialize());
-                return views;
+                return new ActivityEntry(views);
             });
             return activity;
         }
 
         private TActivity GetActivity<TActivity>(IActivity prefab, string? key = null) where TActivity : IActivity
         {
-            return (TActivity)this.prefabToInstance.GetOrAdd(prefab, () =>
+            return (TActivity)this.prefabToActivity.GetOrAdd(prefab, () =>
             {
                 var activity = Object.Instantiate(prefab.gameObject, this.canvas.Hiddens, false).GetComponent<IActivity>();
-                this.instanceToPrefab.Add(activity, prefab);
-                if (key is { }) this.instanceToKey.Add(activity, key);
+                this.activityToPrefab.Add(activity, prefab);
+                if (key is { }) this.activityToKey.Add(activity, key);
                 this.RegisterActivity(activity);
                 return activity;
             });
@@ -166,7 +167,7 @@ namespace UniT.UI
 
         private bool TryHide(IActivity activity, bool force)
         {
-            if (!force && activity.CurrentStatus is IActivity.Status.Showing) return false;
+            if (!force && this.activities[activity].Status is ActivityStatus.Showing) return false;
             this.Hide(activity, false);
             return true;
         }
@@ -184,7 +185,6 @@ namespace UniT.UI
             }
             this.activities.Keys
                 .Where(other => other is not IOverlay)
-                .Where(other => other.CurrentStatus is IActivity.Status.Showing)
                 .SafeForEach(other => this.Hide(other, false));
         }
 
@@ -202,19 +202,21 @@ namespace UniT.UI
                 false
             );
             activity.gameObject.transform.SetAsLastSibling();
-            this.logger.Debug($"{activity.gameObject.name} status: {activity.CurrentStatus = IActivity.Status.Showing}");
-            this.activities[activity].ForEach(view => view.OnShow());
+            var entry = this.activities[activity];
+            this.logger.Debug($"{activity.gameObject.name} status: {entry.Status = ActivityStatus.Showing}");
+            entry.Views.ForEach(view => view.OnShow());
         }
 
         private void Hide(IActivity activity, bool autoStack)
         {
-            if (activity.CurrentStatus is not IActivity.Status.Hidden)
+            var entry = this.activities[activity];
+            if (entry.Status is ActivityStatus.Showing)
             {
-                this.logger.Debug($"{activity.gameObject.name} status: {activity.CurrentStatus = IActivity.Status.Hidden}");
-                this.activities[activity].ForEach(view => view.OnHide());
+                this.logger.Debug($"{activity.gameObject.name} status: {entry.Status = ActivityStatus.Hidden}");
+                entry.Views.ForEach(view => view.OnHide());
                 activity.gameObject.transform.SetParent(this.canvas.Hiddens, false);
             }
-            if (autoStack && this.screensStack.LastOrDefault() is { CurrentStatus: IActivity.Status.Hidden } nextScreen)
+            if (autoStack && this.screensStack.LastOrDefault() is { } nextScreen && this.activities[nextScreen].Status is ActivityStatus.Hidden)
             {
                 this.Show(nextScreen);
             }
@@ -224,18 +226,30 @@ namespace UniT.UI
         {
             this.Hide(activity, autoStack);
             this.activities.Remove(activity);
-            if (this.instanceToPrefab.Remove(activity, out var prefab))
+            if (this.activityToPrefab.Remove(activity, out var prefab))
             {
-                this.prefabToInstance.Remove(prefab);
+                this.prefabToActivity.Remove(prefab);
             }
-            this.logger.Debug($"{activity.gameObject.name} status: {activity.CurrentStatus = IActivity.Status.Disposed}");
             Object.Destroy(activity.gameObject);
-            if (this.instanceToKey.Remove(activity, out var key))
+            if (this.activityToKey.Remove(activity, out var key))
             {
                 this.assetsManager.Unload(key);
             }
+            this.logger.Debug($"{activity.gameObject.name} disposed");
         }
 
         #endregion
+
+        private sealed class ActivityEntry
+        {
+            public IReadOnlyCollection<IView> Views  { get; }
+            public ActivityStatus             Status { get; set; }
+
+            public ActivityEntry(IReadOnlyCollection<IView> views)
+            {
+                this.Views  = views;
+                this.Status = ActivityStatus.Hidden;
+            }
+        }
     }
 }

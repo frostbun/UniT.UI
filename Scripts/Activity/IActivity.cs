@@ -5,21 +5,13 @@ namespace UniT.UI.Activity
 
     public interface IActivity : IView
     {
-        public enum Status
-        {
-            Hidden,
-            Showing,
-            Disposed,
-        }
-
-        public Status CurrentStatus { get; set; }
     }
 
     public interface IActivityWithoutParams : IActivity, IViewWithoutParams
     {
     }
 
-    public interface IActivityWithParams<TParams> : IActivity, IViewWithParams<TParams>
+    public interface IActivityWithParams<in TParams> : IActivity, IViewWithParams<TParams>
     {
     }
 }

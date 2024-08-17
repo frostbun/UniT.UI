@@ -35,8 +35,8 @@ namespace UniT.UI.View
 
     public abstract class View<TParams> : BaseView, IViewWithParams<TParams>
     {
-        TParams IViewWithParams<TParams>.Params { get => this.Params; set => this.Params = value; }
+        TParams IViewWithParams<TParams>.Params { set => this.Params = value; }
 
-        protected TParams Params { get; private set; } = default!;
+        public TParams Params { get; private set; } = default!;
     }
 }

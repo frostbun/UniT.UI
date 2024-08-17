@@ -24,8 +24,8 @@ namespace UniT.UI.View
     {
     }
 
-    public interface IViewWithParams<TParams> : IView
+    public interface IViewWithParams<in TParams> : IView
     {
-        public TParams Params { get; set; }
+        public TParams Params { set; }
     }
 }

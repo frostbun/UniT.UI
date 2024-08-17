@@ -7,9 +7,7 @@ namespace UniT.UI.Activity
     [DisallowMultipleComponent]
     public abstract class BaseActivity : BaseView, IActivity
     {
-        IActivity.Status IActivity.CurrentStatus { get => this.CurrentStatus; set => this.CurrentStatus = value; }
-
-        public IActivity.Status CurrentStatus { get; private set; }
+        public ActivityStatus Status => this.Manager.GetStatus(this);
 
         public void Hide(bool autoStack = true) => this.Manager.Hide(this, autoStack);
 
@@ -23,9 +21,9 @@ namespace UniT.UI.Activity
 
     public abstract class Activity<TParams> : BaseActivity, IActivityWithParams<TParams>
     {
-        TParams IViewWithParams<TParams>.Params { get => this.Params; set => this.Params = value; }
+        TParams IViewWithParams<TParams>.Params { set => this.Params = value; }
 
-        protected TParams Params { get; private set; } = default!;
+        public TParams Params { get; private set; } = default!;
 
         public void Show(TParams @params, bool force = true) => this.Manager.Show(this, @params, force);
     }

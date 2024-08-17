@@ -57,6 +57,8 @@ namespace UniT.UI
 
         #region UI Flow
 
+        public ActivityStatus GetStatus(IActivity activity);
+
         public void Show(IActivityWithoutParams activity, bool force = false);
 
         public void Show<TParams>(IActivityWithParams<TParams> activity, TParams @params, bool force = true);
