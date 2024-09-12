@@ -11,9 +11,9 @@ namespace UniT.UI.Utilities.Adapters
         [SerializeField] private RectTransform content = null!;
         [SerializeField] private TView         prefab  = default!;
 
-        private readonly Dictionary<IView, IReadOnlyCollection<IView>> views        = new Dictionary<IView, IReadOnlyCollection<IView>>();
-        private readonly Queue<TView>                                  pooledViews  = new Queue<TView>();
-        private readonly HashSet<TView>                                spawnedViews = new HashSet<TView>();
+        private readonly Dictionary<IView, IReadOnlyList<IView>> views        = new Dictionary<IView, IReadOnlyList<IView>>();
+        private readonly Queue<TView>                            pooledViews  = new Queue<TView>();
+        private readonly HashSet<TView>                          spawnedViews = new HashSet<TView>();
 
         public void Set(IEnumerable<TParams> allParams)
         {

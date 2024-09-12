@@ -242,10 +242,10 @@ namespace UniT.UI
 
         private sealed class ActivityEntry
         {
-            public IReadOnlyCollection<IView> Views  { get; }
-            public ActivityStatus             Status { get; set; }
+            public IReadOnlyList<IView> Views  { get; }
+            public ActivityStatus       Status { get; set; }
 
-            public ActivityEntry(IReadOnlyCollection<IView> views)
+            public ActivityEntry(IReadOnlyList<IView> views)
             {
                 this.Views  = views;
                 this.Status = ActivityStatus.Hidden;
