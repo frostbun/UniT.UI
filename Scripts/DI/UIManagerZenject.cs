@@ -1,12 +1,12 @@
 #if UNIT_ZENJECT
 #nullable enable
-namespace UniT.UI
+namespace UniT.UI.DI
 {
-    using UniT.Logging;
-    using UniT.ResourceManagement;
+    using UniT.Logging.DI;
+    using UniT.ResourceManagement.DI;
     using Zenject;
 
-    public static class ZenjectBinder
+    public static class UIManagerZenject
     {
         public static void BindUIManager(this DiContainer container)
         {

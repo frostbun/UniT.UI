@@ -1,14 +1,14 @@
 ﻿#if UNIT_DI
 #nullable enable
-namespace UniT.UI
+namespace UniT.UI.DI
 {
     using UniT.DI;
     using UniT.Extensions;
-    using UniT.Logging;
-    using UniT.ResourceManagement;
+    using UniT.Logging.DI;
+    using UniT.ResourceManagement.DI;
     using UnityEngine;
 
-    public static class DIBinder
+    public static class UIManagerDI
     {
         public static void AddUIManager(this DependencyContainer container)
         {
