@@ -3,10 +3,8 @@
 namespace UniT.UI.DI
 {
     using UniT.DI;
-    using UniT.Extensions;
     using UniT.Logging.DI;
     using UniT.ResourceManagement.DI;
-    using UnityEngine;
 
     public static class UIManagerDI
     {
@@ -15,7 +13,7 @@ namespace UniT.UI.DI
             if (container.Contains<IUIManager>()) return;
             container.AddLoggerManager();
             container.AddAssetsManager();
-            container.Add(Resources.Load<GameObject>(nameof(RootUICanvas)).Instantiate().GetComponentOrThrow<RootUICanvas>());
+            container.AddFromComponentInNewPrefabResource<RootUICanvas>(nameof(RootUICanvas));
             container.AddInterfaces<UIManager>();
         }
     }

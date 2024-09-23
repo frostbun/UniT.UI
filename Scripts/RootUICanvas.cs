@@ -14,12 +14,12 @@ namespace UniT.UI
 
         private void Awake()
         {
+            DontDestroyOnLoad(this);
             this.Hiddens  = this.CreateChild(nameof(this.Hiddens));
             this.Screens  = this.CreateChild(nameof(this.Screens));
             this.Popups   = this.CreateChild(nameof(this.Popups));
             this.Overlays = this.CreateChild(nameof(this.Overlays));
             this.Hiddens.gameObject.SetActive(false);
-            DontDestroyOnLoad(this);
         }
 
         private Transform CreateChild(string name)
