@@ -2,6 +2,7 @@
 #nullable enable
 namespace UniT.UI.DI
 {
+    using UniT.DI;
     using UniT.Logging.DI;
     using UniT.ResourceManagement.DI;
     using Zenject;
@@ -11,6 +12,7 @@ namespace UniT.UI.DI
         public static void BindUIManager(this DiContainer container)
         {
             if (container.HasBinding<IUIManager>()) return;
+            container.BindDependencyContainer();
             container.BindLoggerManager();
             container.BindAssetsManager();
             container.Bind<RootUICanvas>().FromComponentInNewPrefabResource(nameof(RootUICanvas)).AsSingle();
