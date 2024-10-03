@@ -157,7 +157,7 @@ namespace UniT.UI
         {
             return (TActivity)this.prefabToActivity.GetOrAdd(prefab, () =>
             {
-                var activity = Object.Instantiate(prefab.gameObject, this.canvas.Hiddens, false).GetComponent<IActivity>();
+                var activity = Object.Instantiate(prefab.gameObject, this.canvas.Hiddens).GetComponent<IActivity>();
                 this.activityToPrefab.Add(activity, prefab);
                 if (key is { }) this.activityToKey.Add(activity, key);
                 this.RegisterActivity(activity);
