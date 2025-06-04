@@ -14,7 +14,6 @@ namespace UniT.UI
     #if UNIT_UNITASK
     using System.Threading;
     using Cysharp.Threading.Tasks;
-
     #else
     using System.Collections;
     #endif
