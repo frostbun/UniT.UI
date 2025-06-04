@@ -4,8 +4,6 @@ namespace UniT.UI
     using System;
     using System.Collections.Generic;
     using UniT.Extensions;
-    using UniT.UI.Activity;
-    using UniT.UI.View;
     #if UNIT_UNITASK
     using System.Threading;
     using Cysharp.Threading.Tasks;
@@ -15,61 +13,49 @@ namespace UniT.UI
 
     public interface IUIManager
     {
-        public void Initialize(IView view, IActivity parent);
+        public IActivity? CurrentScreen { get; }
 
-        public TActivity RegisterActivity<TActivity>(TActivity activity) where TActivity : IActivity;
+        public IActivity? PreviousScreen { get; }
 
-        #region Sync
+        public IEnumerable<IActivity> CurrentPopups { get; }
 
-        public TActivity GetActivity<TActivity>(TActivity prefab) where TActivity : IActivity;
+        public IEnumerable<IActivity> CurrentOverlays { get; }
 
-        public TActivity GetActivity<TActivity>(string key) where TActivity : IActivity;
+        public IEnumerable<IActivity> CurrentOverlayPopups { get; }
 
-        public TActivity GetActivity<TActivity>() where TActivity : IActivity => this.GetActivity<TActivity>(typeof(TActivity).GetKey());
+        public TActivity Register<TActivity>(TActivity activity) where TActivity : IActivity;
+
+        public TActivity Get<TActivity>(IActivity prefab) where TActivity : IActivity;
+
+        public TActivity Get<TActivity>(string name) where TActivity : IActivity;
+
+        public ActivityType? GetType(IActivity activity);
+
+        public void Show<TActivity>(TActivity activity, ActivityType type, bool force = false) where TActivity : IActivityWithoutParams;
+
+        public void Show<TActivity>(TActivity activity, object @params, ActivityType type, bool force = true) where TActivity : IActivityWithParams;
+
+        public void Hide(IActivity activity, bool showPreviousScreen = true);
+
+        public void Dispose(IActivity activity, bool showPreviousScreen = true);
+
+        #region Implicit Key
+
+        public TActivity Get<TActivity>() where TActivity : IActivity => this.Get<TActivity>(typeof(TActivity).GetKey());
 
         #endregion
 
         #region Async
 
         #if UNIT_UNITASK
-        public UniTask<TActivity> GetActivityAsync<TActivity>(string key, IProgress<float>? progress = null, CancellationToken cancellationToken = default) where TActivity : IActivity;
+        public UniTask<TActivity> GetAsync<TActivity>(string name, IProgress<float>? progress = null, CancellationToken cancellationToken = default) where TActivity : IActivity;
 
-        public UniTask<TActivity> GetActivityAsync<TActivity>(IProgress<float>? progress = null, CancellationToken cancellationToken = default) where TActivity : IActivity => this.GetActivityAsync<TActivity>(typeof(TActivity).GetKey(), progress, cancellationToken);
+        public UniTask<TActivity> GetAsync<TActivity>(IProgress<float>? progress = null, CancellationToken cancellationToken = default) where TActivity : IActivity => this.GetAsync<TActivity>(typeof(TActivity).GetKey(), progress, cancellationToken);
         #else
-        public IEnumerator GetActivityAsync<TActivity>(string key, Action<TActivity> callback, IProgress<float>? progress = null) where TActivity : IActivity;
+        public IEnumerator GetAsync<TActivity>(string name, Action<TActivity> callback, IProgress<float>? progress = null) where TActivity : IActivity;
 
-        public IEnumerator GetActivityAsync<TActivity>(Action<TActivity> callback, IProgress<float>? progress = null) where TActivity : IActivity => this.GetActivityAsync(typeof(TActivity).GetKey(), callback, progress);
+        public IEnumerator GetAsync<TActivity>(Action<TActivity> callback, IProgress<float>? progress = null) where TActivity : IActivity => this.GetAsync(typeof(TActivity).GetKey(), callback, progress);
         #endif
-
-        #endregion
-
-        #region Query
-
-        public IScreen? CurrentScreen { get; }
-
-        public IScreen? PreviousScreen { get; }
-
-        public IEnumerable<IPopup> CurrentPopups { get; }
-
-        public IEnumerable<IOverlay> CurrentOverlays { get; }
-
-        #endregion
-
-        #region UI Flow
-
-        public ActivityStatus GetStatus(IActivity activity);
-
-        public void Show(IActivityWithoutParams activity, bool force = false);
-
-        public void Show<TParams>(IActivityWithParams<TParams> activity, TParams @params, bool force = true);
-
-        public void Hide(IActivity activity, bool autoStack = true);
-
-        public void Dispose(IActivity activity, bool autoStack = true);
-
-        public void Show<TActivity>(bool force = false) where TActivity : IActivityWithoutParams => this.Show(this.GetActivity<TActivity>(), force);
-
-        public void Show<TActivity, TParams>(TParams @params, bool force = true) where TActivity : IActivityWithParams<TParams> => this.Show(this.GetActivity<TActivity>(), @params, force);
 
         #endregion
     }

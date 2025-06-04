@@ -1,7 +1,6 @@
 ﻿#nullable enable
 namespace UniT.UI.Utilities.Buttons
 {
-    using UniT.UI.View;
     using UnityEngine;
     using UnityEngine.UI;
 

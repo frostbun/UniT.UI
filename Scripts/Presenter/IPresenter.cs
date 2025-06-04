@@ -1,8 +1,8 @@
 #nullable enable
 namespace UniT.UI.Presenter
 {
-    public interface IPresenter
+    public interface IPresenter : IViewLifecycle
     {
-        public IHasPresenter Owner { set; }
+        public IView View { set; }
     }
 }

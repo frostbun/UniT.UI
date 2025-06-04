@@ -1,10 +1,30 @@
 ﻿#nullable enable
 namespace UniT.UI.Presenter
 {
-    public abstract class Presenter<TOwner> : IPresenter where TOwner : IHasPresenter
+    public abstract class Presenter<TView> : IPresenter where TView : IViewWithPresenter
     {
-        IHasPresenter IPresenter.Owner { set => this.Owner = (TOwner)value; }
+        IView IPresenter.View { set => this.View = (TView)value; }
 
-        protected TOwner Owner { get; private set; } = default!;
+        protected TView View { get; private set; } = default!;
+
+        protected IUIManager Manager => this.View.Manager;
+
+        protected IActivity Activity => this.View.Activity;
+
+        void IViewLifecycle.OnInitialize() => this.OnInitialize();
+
+        void IViewLifecycle.OnShow() => this.OnShow();
+
+        void IViewLifecycle.OnHide() => this.OnHide();
+
+        void IViewLifecycle.OnDispose() => this.OnDispose();
+
+        protected virtual void OnInitialize() { }
+
+        protected virtual void OnShow() { }
+
+        protected virtual void OnHide() { }
+
+        protected virtual void OnDispose() { }
     }
 }

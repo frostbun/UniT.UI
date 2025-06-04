@@ -3,10 +3,9 @@ namespace UniT.UI.Utilities.Adapters
 {
     using System.Collections.Generic;
     using UniT.Extensions;
-    using UniT.UI.View;
     using UnityEngine;
 
-    public abstract class SimpleViewAdapter<TParams, TView> : View where TView : IViewWithParams<TParams>
+    public abstract class SimpleViewAdapter<TParams, TView> : View where TView : IViewWithParams
     {
         [SerializeField] private RectTransform content = null!;
         [SerializeField] private TView         prefab  = default!;
@@ -17,7 +16,7 @@ namespace UniT.UI.Utilities.Adapters
 
         public void Set(IEnumerable<TParams> allParams)
         {
-            this.HideAll();
+            this.OnHide();
             allParams.ForEach(@params =>
             {
                 var view = this.pooledViews.DequeueOrDefault(() =>
@@ -25,25 +24,39 @@ namespace UniT.UI.Utilities.Adapters
                     var view       = Instantiate(this.prefab.gameObject, this.content).GetComponent<TView>();
                     var childViews = view.gameObject.GetComponentsInChildren<IView>();
                     this.views.Add(view, childViews);
-                    childViews.ForEach(childView => this.Manager.Initialize(childView, this.Activity));
+                    childViews.ForEach(childView =>
+                    {
+                        childView.Container = this.Container;
+                        childView.Manager   = this.Manager;
+                        childView.Activity  = this.Activity;
+                    });
                     childViews.ForEach(childView => childView.OnInitialize());
                     return view;
                 });
-                view.gameObject.transform.SetAsLastSibling();
+                view.transform.SetAsLastSibling();
                 view.gameObject.SetActive(true);
                 this.spawnedViews.Add(view);
-                view.Params = @params;
+                view.Params = @params!;
                 this.views[view].ForEach(childView => childView.OnShow());
             });
         }
 
-        private void HideAll()
+        protected override void OnHide()
         {
             this.spawnedViews.Clear(view =>
             {
                 this.views[view].ForEach(childView => childView.OnHide());
                 view.gameObject.SetActive(false);
                 this.pooledViews.Enqueue(view);
+            });
+        }
+
+        protected override void OnDispose()
+        {
+            this.pooledViews.Clear(view =>
+            {
+                this.views[view].ForEach(childView => childView.OnDispose());
+                Destroy(view.gameObject);
             });
         }
     }

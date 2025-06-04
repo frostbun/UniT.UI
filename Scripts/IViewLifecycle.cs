@@ -1,14 +1,14 @@
 ﻿#nullable enable
-namespace UniT.UI.View.Presenter
+namespace UniT.UI
 {
-    using UniT.UI.Presenter;
-
-    public interface IViewPresenter : IPresenter
+    public interface IViewLifecycle
     {
         public void OnInitialize();
 
         public void OnShow();
 
         public void OnHide();
+
+        public void OnDispose();
     }
 }

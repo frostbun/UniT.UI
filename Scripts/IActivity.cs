@@ -1,8 +1,6 @@
 #nullable enable
-namespace UniT.UI.Activity
+namespace UniT.UI
 {
-    using UniT.UI.View;
-
     public interface IActivity : IView
     {
     }
@@ -11,7 +9,7 @@ namespace UniT.UI.Activity
     {
     }
 
-    public interface IActivityWithParams<in TParams> : IActivity, IViewWithParams<TParams>
+    public interface IActivityWithParams : IActivity, IViewWithParams
     {
     }
 }

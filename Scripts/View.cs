@@ -1,42 +1,50 @@
 ﻿#nullable enable
-namespace UniT.UI.View
+namespace UniT.UI
 {
+    using UniT.DI;
     using UniT.Extensions;
-    using UniT.UI.Activity;
     using UnityEngine;
 
     [RequireComponent(typeof(RectTransform))]
     public abstract class BaseView : BetterMonoBehavior, IView
     {
+        IDependencyContainer IView.Container { set => this.Container = value; }
+
         IUIManager IView.Manager { get => this.Manager; set => this.Manager = value; }
 
         IActivity IView.Activity { get => this.Activity; set => this.Activity = value; }
+
+        protected IDependencyContainer Container { get; private set; } = null!;
 
         public IUIManager Manager { get; private set; } = null!;
 
         public IActivity Activity { get; private set; } = null!;
 
-        void IView.OnInitialize() => this.OnInitialize();
+        void IViewLifecycle.OnInitialize() => this.OnInitialize();
 
-        void IView.OnShow() => this.OnShow();
+        void IViewLifecycle.OnShow() => this.OnShow();
 
-        void IView.OnHide() => this.OnHide();
+        void IViewLifecycle.OnHide() => this.OnHide();
+
+        void IViewLifecycle.OnDispose() => this.OnDispose();
 
         protected virtual void OnInitialize() { }
 
         protected virtual void OnShow() { }
 
         protected virtual void OnHide() { }
+
+        protected virtual void OnDispose() { }
     }
 
     public abstract class View : BaseView, IViewWithoutParams
     {
     }
 
-    public abstract class View<TParams> : BaseView, IViewWithParams<TParams>
+    public abstract class View<TParams> : BaseView, IViewWithParams
     {
-        TParams IViewWithParams<TParams>.Params { set => this.Params = value; }
+        object IViewWithParams.Params { set => this.Params = (TParams)value; }
 
-        public TParams Params { get; private set; } = default!;
+        protected TParams Params { get; private set; } = default!;
     }
 }
