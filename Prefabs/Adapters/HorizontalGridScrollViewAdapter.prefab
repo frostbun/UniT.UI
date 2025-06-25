@@ -12,6 +12,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: HorizontalGridScrollViewAdapter
       objectReference: {fileID: 0}
+    - target: {fileID: 2997153890483285691, guid: c1fea2e1c6b3e5343be161a19ce6e354, type: 3}
+      propertyPath: m_HorizontalFit
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4956439319768037319, guid: c1fea2e1c6b3e5343be161a19ce6e354, type: 3}
+      propertyPath: m_PreferredWidth
+      value: 100
+      objectReference: {fileID: 0}
     - target: {fileID: 5305147950466905784, guid: c1fea2e1c6b3e5343be161a19ce6e354, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
@@ -42,6 +50,18 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5305147950466905784, guid: c1fea2e1c6b3e5343be161a19ce6e354, type: 3}
       propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5480468843787288752, guid: c1fea2e1c6b3e5343be161a19ce6e354, type: 3}
+      propertyPath: m_Pivot.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5480468843787288752, guid: c1fea2e1c6b3e5343be161a19ce6e354, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5480468843787288752, guid: c1fea2e1c6b3e5343be161a19ce6e354, type: 3}
+      propertyPath: m_SizeDelta.x
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6353182425477947095, guid: c1fea2e1c6b3e5343be161a19ce6e354, type: 3}
@@ -103,5 +123,5 @@ MonoBehaviour:
   m_StartAxis: 1
   m_CellSize: {x: 100, y: 100}
   m_Spacing: {x: 10, y: 10}
-  m_Constraint: 0
-  m_ConstraintCount: 2
+  m_Constraint: 2
+  m_ConstraintCount: 5

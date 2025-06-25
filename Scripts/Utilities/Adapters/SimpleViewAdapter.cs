@@ -1,5 +1,5 @@
 #nullable enable
-namespace UniT.UI.Utilities.Adapters
+namespace UniT.UI.Utilities
 {
     using System.Collections.Generic;
     using UniT.Extensions;
@@ -35,9 +35,9 @@ namespace UniT.UI.Utilities.Adapters
                 });
                 view.transform.SetAsLastSibling();
                 view.gameObject.SetActive(true);
-                this.spawnedViews.Add(view);
                 view.Params = @params!;
                 this.views[view].ForEach(childView => childView.OnShow());
+                this.spawnedViews.Add(view);
             });
         }
 
@@ -45,8 +45,8 @@ namespace UniT.UI.Utilities.Adapters
         {
             this.spawnedViews.Clear(view =>
             {
-                this.views[view].ForEach(childView => childView.OnHide());
                 view.gameObject.SetActive(false);
+                this.views[view].ForEach(childView => childView.OnHide());
                 this.pooledViews.Enqueue(view);
             });
         }
@@ -55,8 +55,8 @@ namespace UniT.UI.Utilities.Adapters
         {
             this.pooledViews.Clear(view =>
             {
-                this.views[view].ForEach(childView => childView.OnDispose());
                 Destroy(view.gameObject);
+                this.views[view].ForEach(childView => childView.OnDispose());
             });
         }
     }
