@@ -18,7 +18,8 @@ namespace UniT.UI
 
     public abstract class Activity<TParams> : BaseActivity, IActivityWithParams
     {
-        object IViewWithParams.Params { set => this.Params = (TParams)value; }
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+        object IViewWithParams.Params { set => this.Params = value is null ? default! : (TParams)value; }
 
         protected TParams Params { get; private set; } = default!;
 
