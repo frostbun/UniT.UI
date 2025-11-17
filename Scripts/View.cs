@@ -1,6 +1,7 @@
 ﻿#nullable enable
 namespace UniT.UI
 {
+    using System;
     using UniT.DI;
     using UniT.Extensions;
     using UnityEngine;
@@ -43,9 +44,18 @@ namespace UniT.UI
 
     public abstract class View<TParams> : BaseView, IViewWithParams
     {
-        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
-        object IViewWithParams.Params { set => this.Params = value is null ? default! : (TParams)value; }
+        private TParams? @params;
 
-        protected TParams Params { get; private set; } = default!;
+        object IViewWithParams.Params
+        {
+            set => this.@params = value switch
+            {
+                null            => default,
+                TParams @params => @params,
+                _               => throw new InvalidCastException($"{this.GetType().Name} expected {typeof(TParams)}, got {value.GetType().Name}"),
+            };
+        }
+
+        protected TParams Params => this.@params ?? throw new InvalidOperationException($"{this.name} not shown or already hidden");
     }
 }
