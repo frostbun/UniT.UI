@@ -17,7 +17,7 @@ namespace UniT.UI.Utilities
     }
 
     [RequireComponent(typeof(Button))]
-    public abstract class ShowActivityByPrefabButton<TActivity, TParams> : View where TActivity : IActivityWithParams
+    public abstract class ShowActivityByPrefabButton<TActivity, TParams> : View where TActivity : IActivityWithParams<TParams> where TParams : notnull
     {
         [SerializeField]     private TActivity    prefab  = default!;
         [SerializeReference] private TParams      @params = default!;
@@ -25,32 +25,32 @@ namespace UniT.UI.Utilities
 
         protected override void OnInitialize()
         {
-            this.GetComponent<Button>().onClick.AddListener(() => this.Manager.Show(this.Manager.Get<TActivity>(this.prefab), this.@params!, this.type));
+            this.GetComponent<Button>().onClick.AddListener(() => this.Manager.Show(this.Manager.Get<TActivity>(this.prefab), this.@params, this.type));
         }
     }
 
     [RequireComponent(typeof(Button))]
-    public abstract class ShowActivityByNameButton<TActivity> : View where TActivity : IActivityWithoutParams
+    public abstract class ShowActivityByKeyButton<TActivity> : View where TActivity : IActivityWithoutParams
     {
-        [SerializeField] private new string       name = default!;
-        [SerializeField] private     ActivityType type;
+        [SerializeField] private string       key = string.Empty;
+        [SerializeField] private ActivityType type;
 
         protected override void OnInitialize()
         {
-            this.GetComponent<Button>().onClick.AddListener(() => this.Manager.Show(this.Manager.Get<TActivity>(this.name), this.type));
+            this.GetComponent<Button>().onClick.AddListener(() => this.Manager.Show(this.Manager.Get<TActivity>(this.key), this.type));
         }
     }
 
     [RequireComponent(typeof(Button))]
-    public abstract class ShowActivityByNameButton<TActivity, TParams> : View where TActivity : IActivityWithParams
+    public abstract class ShowActivityByKeyButton<TActivity, TParams> : View where TActivity : IActivityWithParams<TParams> where TParams : notnull
     {
-        [SerializeField]     private new string       name    = default!;
-        [SerializeReference] private     TParams      @params = default!;
-        [SerializeField]     private     ActivityType type;
+        [SerializeField]     private string       key     = string.Empty;
+        [SerializeReference] private TParams      @params = default!;
+        [SerializeField]     private ActivityType type;
 
         protected override void OnInitialize()
         {
-            this.GetComponent<Button>().onClick.AddListener(() => this.Manager.Show(this.Manager.Get<TActivity>(this.name), this.@params!, this.type));
+            this.GetComponent<Button>().onClick.AddListener(() => this.Manager.Show(this.Manager.Get<TActivity>(this.key), this.@params, this.type));
         }
     }
 
@@ -66,14 +66,14 @@ namespace UniT.UI.Utilities
     }
 
     [RequireComponent(typeof(Button))]
-    public abstract class ShowActivityByTypeButton<TActivity, TParams> : View where TActivity : IActivityWithParams
+    public abstract class ShowActivityByTypeButton<TActivity, TParams> : View where TActivity : IActivityWithParams<TParams> where TParams : notnull
     {
         [SerializeReference] private TParams      @params = default!;
         [SerializeField]     private ActivityType type;
 
         protected override void OnInitialize()
         {
-            this.GetComponent<Button>().onClick.AddListener(() => this.Manager.Show(this.Manager.Get<TActivity>(this.name), this.@params!, this.type));
+            this.GetComponent<Button>().onClick.AddListener(() => this.Manager.Show(this.Manager.Get<TActivity>(this.name), this.@params, this.type));
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿#nullable enable
 namespace UniT.UI
 {
+    using System;
     using UnityEngine;
 
     [DisallowMultipleComponent]
@@ -16,13 +17,14 @@ namespace UniT.UI
         public void Show(ActivityType type, bool force = false) => this.Manager.Show(this, type, force);
     }
 
-    public abstract class Activity<TParams> : BaseActivity, IActivityWithParams
+    public abstract class Activity<TParams> : BaseActivity, IActivityWithParams<TParams> where TParams : notnull
     {
-        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
-        object IViewWithParams.Params { set => this.Params = value is null ? default! : (TParams)value; }
+        TParams? IViewWithParams<TParams>.Params { set => this.@params = value; }
 
-        protected TParams Params { get; private set; } = default!;
+        private TParams? @params;
 
-        public void Show(TParams @params, ActivityType type, bool force = true) => this.Manager.Show(this, @params!, type, force);
+        protected TParams Params => this.@params ?? throw new InvalidOperationException($"{this.name} not shown or already hidden");
+
+        public void Show(TParams @params, ActivityType type, bool force = true) => this.Manager.Show(this, @params, type, force);
     }
 }

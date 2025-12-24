@@ -12,4 +12,8 @@ namespace UniT.UI
     public interface IActivityWithParams : IActivity, IViewWithParams
     {
     }
+
+    public interface IActivityWithParams<in TParams> : IActivityWithParams, IViewWithParams<TParams> where TParams : notnull
+    {
+    }
 }

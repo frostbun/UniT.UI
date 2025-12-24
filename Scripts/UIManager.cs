@@ -8,6 +8,7 @@ namespace UniT.UI
     using UniT.Extensions;
     using UniT.Logging;
     using UniT.ResourceManagement;
+    using Unity.Collections.LowLevel.Unsafe;
     using UnityEngine.Scripting;
     using ILogger = UniT.Logging.ILogger;
     using Object = UnityEngine.Object;
@@ -28,9 +29,9 @@ namespace UniT.UI
         private readonly ILogger              logger;
 
         private readonly List<IActivity>                      screensStack     = new List<IActivity>();
-        private readonly Dictionary<string, IActivity>        nameToPrefab     = new Dictionary<string, IActivity>();
+        private readonly Dictionary<object, IActivity>        keyToPrefab      = new Dictionary<object, IActivity>();
         private readonly Dictionary<IActivity, IActivity>     prefabToActivity = new Dictionary<IActivity, IActivity>();
-        private readonly Dictionary<IActivity, string>        activityToName   = new Dictionary<IActivity, string>();
+        private readonly Dictionary<IActivity, object>        activityToKey    = new Dictionary<IActivity, object>();
         private readonly Dictionary<IActivity, IActivity>     activityToPrefab = new Dictionary<IActivity, IActivity>();
         private readonly Dictionary<IActivity, ActivityEntry> activityToEntry  = new Dictionary<IActivity, ActivityEntry>();
 
@@ -66,24 +67,24 @@ namespace UniT.UI
 
         TActivity IUIManager.Get<TActivity>(IActivity prefab) => this.Get<TActivity>(prefab);
 
-        TActivity IUIManager.Get<TActivity>(string name)
+        TActivity IUIManager.Get<TActivity>(object key)
         {
-            var prefab   = this.nameToPrefab.GetOrAdd(name, () => this.assetsManager.LoadComponent<IActivity>(name));
+            var prefab   = this.keyToPrefab.GetOrAdd(key, () => this.assetsManager.LoadComponent<IActivity>(key));
             var activity = this.Get<TActivity>(prefab);
-            this.activityToName.TryAdd(activity, name);
+            this.activityToKey.TryAdd(activity, key);
             return activity;
         }
 
         #if UNIT_UNITASK
-        async UniTask<TActivity> IUIManager.GetAsync<TActivity>(string name, IProgress<float>? progress, CancellationToken cancellationToken)
+        async UniTask<TActivity> IUIManager.GetAsync<TActivity>(object key, IProgress<float>? progress, CancellationToken cancellationToken)
         {
-            var prefab   = await this.nameToPrefab.GetOrAddAsync(name, () => this.assetsManager.LoadComponentAsync<IActivity>(name, progress, cancellationToken));
+            var prefab   = await this.keyToPrefab.GetOrAddAsync(key, () => this.assetsManager.LoadComponentAsync<IActivity>(key, progress, cancellationToken));
             var activity = this.Get<TActivity>(prefab);
-            this.activityToName[activity] = name;
+            this.activityToKey.TryAdd(activity, key);
             return activity;
         }
         #else
-        IEnumerator IUIManager.GetAsync<TActivity>(string name, Action<TActivity> callback, IProgress<float>? progress)
+        IEnumerator IUIManager.GetAsync<TActivity>(object key, Action<TActivity> callback, IProgress<float>? progress)
         {
             var prefab = default(IActivity)!;
             yield return this.nameToPrefab.GetOrAddAsync(
@@ -92,7 +93,7 @@ namespace UniT.UI
                 result => prefab = result
             );
             var activity = this.Get<TActivity>(prefab);
-            this.activityToName[activity] = name;
+            this.activityToKey.TryAdd(activity, key);
             callback(activity);
         }
         #endif
@@ -101,7 +102,7 @@ namespace UniT.UI
 
         void IUIManager.Show<TActivity>(TActivity activity, ActivityType type, bool force) => this.Show(activity, null, type, force);
 
-        void IUIManager.Show<TActivity>(TActivity activity, object @params, ActivityType type, bool force) => this.Show(activity, @params, type, force);
+        void IUIManager.Show<TActivity, TParams>(TActivity activity, TParams @params, ActivityType type, bool force) => this.Show(activity, @params, type, force);
 
         void IUIManager.Hide(IActivity activity, bool showPreviousScreen) => this.Hide(activity, showPreviousScreen, removeFromStack: true);
 
@@ -131,6 +132,7 @@ namespace UniT.UI
             {
                 var activity = Object.Instantiate(prefab.gameObject, this.canvas.Hiddens).GetComponent<IActivity>();
                 this.Initialize(activity);
+                this.activityToPrefab.Add(activity, prefab);
                 return activity;
             });
         }
@@ -139,7 +141,7 @@ namespace UniT.UI
         {
             var entry = this.activityToEntry[activity];
             if (!force && entry.Type == type) return;
-            if (activity is IActivityWithParams activityWithParams && @params is { })
+            if (activity is IActivityWithParams activityWithParams)
             {
                 activityWithParams.Params = @params;
             }
@@ -207,10 +209,10 @@ namespace UniT.UI
             {
                 this.prefabToActivity.Remove(prefab);
             }
-            if (this.activityToName.Remove(activity, out var name))
+            if (this.activityToKey.Remove(activity, out var name))
             {
                 this.assetsManager.Unload(name);
-                this.nameToPrefab.Remove(name);
+                this.keyToPrefab.Remove(name);
             }
             this.logger.Debug($"Dispose {activityName}");
         }

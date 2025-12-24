@@ -37,7 +37,7 @@ namespace UniT.UI.Presenter
         }
     }
 
-    public abstract class Activity<TParams, TPresenter> : UI.Activity<TParams>, IViewLifecycle where TPresenter : IPresenter
+    public abstract class Activity<TParams, TPresenter> : UI.Activity<TParams>, IViewLifecycle where TPresenter : IPresenter where TParams : notnull
     {
         protected virtual Type PresenterType => typeof(TPresenter);
 

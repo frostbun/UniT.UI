@@ -42,19 +42,11 @@ namespace UniT.UI
     {
     }
 
-    public abstract class View<TParams> : BaseView, IViewWithParams
+    public abstract class View<TParams> : BaseView, IViewWithParams<TParams> where TParams : notnull
     {
-        private TParams? @params;
+        TParams? IViewWithParams<TParams>.Params { set => this.@params = value; }
 
-        object IViewWithParams.Params
-        {
-            set => this.@params = value switch
-            {
-                null            => default,
-                TParams @params => @params,
-                _               => throw new InvalidCastException($"{this.GetType().Name} expected {typeof(TParams)}, got {value.GetType().Name}"),
-            };
-        }
+        private TParams? @params;
 
         protected TParams Params => this.@params ?? throw new InvalidOperationException($"{this.name} not shown or already hidden");
     }

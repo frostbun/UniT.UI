@@ -1,6 +1,7 @@
 ﻿#nullable enable
 namespace UniT.UI
 {
+    using System;
     using UniT.DI;
     using UnityEngine;
 
@@ -25,6 +26,21 @@ namespace UniT.UI
 
     public interface IViewWithParams : IView
     {
-        public object Params { set; }
+        public object? Params { set; }
+    }
+
+    public interface IViewWithParams<in TParams> : IViewWithParams where TParams : notnull
+    {
+        object? IViewWithParams.Params
+        {
+            set => this.Params = value switch
+            {
+                null            => default,
+                TParams @params => @params,
+                _               => throw new InvalidCastException($"{this.GetType().Name} expected params of type {typeof(TParams)}, got {value.GetType().Name}"),
+            };
+        }
+
+        public new TParams? Params { set; }
     }
 }
