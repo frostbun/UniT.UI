@@ -3,7 +3,7 @@ namespace UniT.UI.Presenter
 {
     using System;
 
-    public abstract class View<TPresenter> : View, IViewLifecycle where TPresenter : IPresenter
+    public abstract class View<TPresenter> : View, IViewWithPresenter where TPresenter : IPresenter
     {
         protected virtual Type PresenterType => typeof(TPresenter);
 
@@ -37,7 +37,7 @@ namespace UniT.UI.Presenter
         }
     }
 
-    public abstract class View<TParams, TPresenter> : UI.View<TParams>, IViewLifecycle where TPresenter : IPresenter where TParams : notnull
+    public abstract class View<TParams, TPresenter> : UI.View<TParams>, IViewWithPresenter where TPresenter : IPresenter where TParams : notnull
     {
         protected virtual Type PresenterType => typeof(TPresenter);
 
