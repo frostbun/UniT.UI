@@ -8,7 +8,6 @@ namespace UniT.UI
     using UniT.Extensions;
     using UniT.Logging;
     using UniT.ResourceManagement;
-    using Unity.Collections.LowLevel.Unsafe;
     using UnityEngine.Scripting;
     using ILogger = UniT.Logging.ILogger;
     using Object = UnityEngine.Object;
@@ -87,9 +86,9 @@ namespace UniT.UI
         IEnumerator IUIManager.GetAsync<TActivity>(object key, Action<TActivity> callback, IProgress<float>? progress)
         {
             var prefab = default(IActivity)!;
-            yield return this.nameToPrefab.GetOrAddAsync(
-                name,
-                callback => this.assetsManager.LoadComponentAsync(name, callback, progress),
+            yield return this.keyToPrefab.GetOrAddAsync(
+                key,
+                callback => this.assetsManager.LoadComponentAsync(key, callback, progress),
                 result => prefab = result
             );
             var activity = this.Get<TActivity>(prefab);
