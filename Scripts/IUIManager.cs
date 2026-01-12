@@ -13,15 +13,21 @@ namespace UniT.UI
 
     public interface IUIManager
     {
-        public IActivity? CurrentScreen { get; }
+        public event Action<IActivity, IReadOnlyList<IView>> Initialized;
 
-        public IActivity? PreviousScreen { get; }
+        public event Action<IActivity, IReadOnlyList<IView>> Shown;
 
-        public IEnumerable<IActivity> CurrentPopups { get; }
+        public event Action<IActivity, IReadOnlyList<IView>> Hidden;
 
-        public IEnumerable<IActivity> CurrentOverlays { get; }
+        public event Action<IActivity, IReadOnlyList<IView>> Disposed;
 
-        public IEnumerable<IActivity> CurrentOverlayPopups { get; }
+        public IActivity? ShowingScreen { get; }
+
+        public IEnumerable<IActivity> ShowingPopups { get; }
+
+        public IEnumerable<IActivity> ShowingOverlays { get; }
+
+        public IEnumerable<IActivity> ShowingOverlayPopups { get; }
 
         public TActivity Register<TActivity>(TActivity activity) where TActivity : IActivity;
 
@@ -29,15 +35,13 @@ namespace UniT.UI
 
         public TActivity Get<TActivity>(object key) where TActivity : IActivity;
 
-        public ActivityType? GetType(IActivity activity);
+        public void Show<TActivity>(TActivity activity, bool force = false) where TActivity : IActivityWithoutParams;
 
-        public void Show<TActivity>(TActivity activity, ActivityType type, bool force = false) where TActivity : IActivityWithoutParams;
+        public void Show<TActivity, TParams>(TActivity activity, TParams @params, bool force = true) where TActivity : IActivityWithParams<TParams> where TParams : notnull;
 
-        public void Show<TActivity, TParams>(TActivity activity, TParams @params, ActivityType type, bool force = true) where TActivity : IActivityWithParams<TParams> where TParams : notnull;
+        public void Hide(IActivity activity);
 
-        public void Hide(IActivity activity, bool showPreviousScreen = true);
-
-        public void Dispose(IActivity activity, bool showPreviousScreen = true);
+        public void Dispose(IActivity activity);
 
         #region Implicit Key
 

@@ -27,12 +27,12 @@ namespace UniT.UI
         private readonly IAssetsManager       assetsManager;
         private readonly ILogger              logger;
 
-        private readonly List<IActivity>                      screensStack     = new List<IActivity>();
-        private readonly Dictionary<object, IActivity>        keyToPrefab      = new Dictionary<object, IActivity>();
-        private readonly Dictionary<IActivity, IActivity>     prefabToActivity = new Dictionary<IActivity, IActivity>();
-        private readonly Dictionary<IActivity, object>        activityToKey    = new Dictionary<IActivity, object>();
-        private readonly Dictionary<IActivity, IActivity>     activityToPrefab = new Dictionary<IActivity, IActivity>();
-        private readonly Dictionary<IActivity, ActivityEntry> activityToEntry  = new Dictionary<IActivity, ActivityEntry>();
+        private readonly HashSet<IActivity>                          showingActivities = new HashSet<IActivity>();
+        private readonly Dictionary<object, IActivity>               keyToPrefab       = new Dictionary<object, IActivity>();
+        private readonly Dictionary<IActivity, IActivity>            prefabToActivity  = new Dictionary<IActivity, IActivity>();
+        private readonly Dictionary<IActivity, object>               activityToKey     = new Dictionary<IActivity, object>();
+        private readonly Dictionary<IActivity, IActivity>            activityToPrefab  = new Dictionary<IActivity, IActivity>();
+        private readonly Dictionary<IActivity, IReadOnlyList<IView>> activityToViews   = new Dictionary<IActivity, IReadOnlyList<IView>>();
 
         [Preserve]
         public UIManager(RootUICanvas canvas, IDependencyContainer container, IAssetsManager assetsManager, ILoggerManager loggerManager)
@@ -48,15 +48,18 @@ namespace UniT.UI
 
         #region Public
 
-        IActivity? IUIManager.CurrentScreen => this.screensStack.LastOrDefault(prefab => this.activityToEntry[prefab].Type is ActivityType.Screen);
+        event Action<IActivity, IReadOnlyList<IView>> IUIManager.Initialized { add => this.initialized += value; remove => this.initialized -= value; }
+        event Action<IActivity, IReadOnlyList<IView>> IUIManager.Shown       { add => this.shown += value;       remove => this.shown -= value; }
+        event Action<IActivity, IReadOnlyList<IView>> IUIManager.Hidden      { add => this.hidden += value;      remove => this.hidden -= value; }
+        event Action<IActivity, IReadOnlyList<IView>> IUIManager.Disposed    { add => this.disposed += value;    remove => this.disposed -= value; }
 
-        IActivity? IUIManager.PreviousScreen => this.screensStack.LastOrDefault(prefab => this.activityToEntry[prefab].Type is not ActivityType.Screen);
+        IActivity? IUIManager.ShowingScreen => this.showingActivities.SingleOrDefault(activity => activity.Type is ActivityType.Screen);
 
-        IEnumerable<IActivity> IUIManager.CurrentPopups => this.activityToEntry.WhereValue(entry => entry.Type is ActivityType.Popup).SelectKeys();
+        IEnumerable<IActivity> IUIManager.ShowingPopups => this.showingActivities.Where(activity => activity.Type is ActivityType.Popup);
 
-        IEnumerable<IActivity> IUIManager.CurrentOverlays => this.activityToEntry.WhereValue(entry => entry.Type is ActivityType.Overlay).SelectKeys();
+        IEnumerable<IActivity> IUIManager.ShowingOverlays => this.showingActivities.Where(activity => activity.Type is ActivityType.Overlay);
 
-        IEnumerable<IActivity> IUIManager.CurrentOverlayPopups => this.activityToEntry.WhereValue(entry => entry.Type is ActivityType.OverlayPopup).SelectKeys();
+        IEnumerable<IActivity> IUIManager.ShowingOverlayPopups => this.showingActivities.Where(activity => activity.Type is ActivityType.OverlayPopup);
 
         TActivity IUIManager.Register<TActivity>(TActivity activity)
         {
@@ -97,24 +100,27 @@ namespace UniT.UI
         }
         #endif
 
-        ActivityType? IUIManager.GetType(IActivity activity) => this.activityToEntry[activity].Type;
+        void IUIManager.Show<TActivity>(TActivity activity, bool force) => this.Show(activity, null, force);
 
-        void IUIManager.Show<TActivity>(TActivity activity, ActivityType type, bool force) => this.Show(activity, null, type, force);
+        void IUIManager.Show<TActivity, TParams>(TActivity activity, TParams @params, bool force) => this.Show(activity, @params, force);
 
-        void IUIManager.Show<TActivity, TParams>(TActivity activity, TParams @params, ActivityType type, bool force) => this.Show(activity, @params, type, force);
+        void IUIManager.Hide(IActivity activity) => this.Hide(activity);
 
-        void IUIManager.Hide(IActivity activity, bool showPreviousScreen) => this.Hide(activity, showPreviousScreen, removeFromStack: true);
-
-        void IUIManager.Dispose(IActivity activity, bool showPreviousScreen) => this.Dispose(activity, showPreviousScreen);
+        void IUIManager.Dispose(IActivity activity) => this.Dispose(activity);
 
         #endregion
 
         #region Private
 
+        private Action<IActivity, IReadOnlyList<IView>>? initialized;
+        private Action<IActivity, IReadOnlyList<IView>>? shown;
+        private Action<IActivity, IReadOnlyList<IView>>? hidden;
+        private Action<IActivity, IReadOnlyList<IView>>? disposed;
+
         private void Initialize(IActivity activity)
         {
             var views = activity.gameObject.GetComponentsInChildren<IView>();
-            this.activityToEntry.Add(activity, new ActivityEntry(views));
+            this.activityToViews.Add(activity, views);
             views.ForEach(view =>
             {
                 view.Container = this.container;
@@ -122,7 +128,8 @@ namespace UniT.UI
                 view.Activity  = activity;
             });
             views.ForEach(view => view.OnInitialize());
-            this.logger.Debug($"Initialize {activity.gameObject.name}");
+            this.initialized?.Invoke(activity, views);
+            this.logger.Debug($"Initialized {activity.gameObject.name}");
         }
 
         private TActivity Get<TActivity>(IActivity prefab)
@@ -136,74 +143,46 @@ namespace UniT.UI
             });
         }
 
-        private void Show(IActivity activity, object? @params, ActivityType type, bool force)
+        private void Show(IActivity activity, object? @params, bool force)
         {
-            var entry = this.activityToEntry[activity];
-            if (!force && entry.Type == type) return;
-            if (activity is IActivityWithParams activityWithParams)
+            if (!this.showingActivities.Add(activity) && !force) return;
+            if (activity is IActivityWithParams activityWithParams && @params is { })
             {
                 activityWithParams.Params = @params;
             }
-            if (type is ActivityType.Screen)
+            if (activity.Type is ActivityType.Screen)
             {
-                var index = this.screensStack.IndexOf(activity);
-                if (index is -1)
-                {
-                    this.screensStack.Add(activity);
-                }
-                else
-                {
-                    this.screensStack.RemoveRange(index + 1, this.screensStack.Count - index - 1);
-                }
-                this.activityToEntry.WhereValue(entry => entry.Type is not ActivityType.Overlay)
-                    .SelectKeys()
-                    .ForEach(prefab => this.Hide(prefab, showPreviousScreen: false, removeFromStack: false));
+                this.showingActivities.Where(activity => activity.Type is not ActivityType.Overlay).SafeForEach(this.Hide);
             }
-            else
-            {
-                this.screensStack.Remove(activity);
-            }
-            activity.transform.SetParent(type switch
+            activity.transform.SetParent(activity.Type switch
             {
                 ActivityType.Screen       => this.canvas.Screens,
                 ActivityType.Popup        => this.canvas.Popups,
                 ActivityType.Overlay      => this.canvas.Overlays,
                 ActivityType.OverlayPopup => this.canvas.OverlayPopups,
-                _                         => throw new ArgumentOutOfRangeException(nameof(type), type, null),
+                _                         => throw new ArgumentOutOfRangeException(nameof(activity.Type), activity.Type, null),
             }, false);
             activity.transform.SetAsLastSibling();
-            entry.Type = type;
-            entry.Views.ForEach(view => view.OnShow());
-            this.logger.Debug($"Show {entry.Type} {activity.gameObject.name}");
+            var views = this.activityToViews[activity];
+            views.ForEach(view => view.OnShow());
+            this.shown?.Invoke(activity, views);
+            this.logger.Debug($"Shown {activity.gameObject.name}");
         }
 
-        private void Hide(IActivity activity, bool showPreviousScreen, bool removeFromStack)
+        private void Hide(IActivity activity)
         {
-            var entry = this.activityToEntry[activity];
-            if (entry.Type is { })
-            {
-                activity.transform.SetParent(this.canvas.Hiddens, false);
-                entry.Type = null;
-                entry.Views.ForEach(view => view.OnHide());
-                this.logger.Debug($"Hide {activity.gameObject.name}");
-            }
-            if (removeFromStack)
-            {
-                this.screensStack.Remove(activity);
-            }
-            if (showPreviousScreen && this.screensStack.LastOrDefault() is { } nextScreen && this.activityToEntry[nextScreen].Type is null)
-            {
-                this.Show(nextScreen, null, ActivityType.Screen, false);
-            }
+            if (!this.showingActivities.Remove(activity)) return;
+            activity.transform.SetParent(this.canvas.Hiddens, false);
+            var views = this.activityToViews[activity];
+            views.ForEach(view => view.OnHide());
+            this.hidden?.Invoke(activity, views);
+            this.logger.Debug($"Hidden {activity.gameObject.name}");
         }
 
-        private void Dispose(IActivity activity, bool showPreviousScreen)
+        private void Dispose(IActivity activity)
         {
-            this.Hide(activity, showPreviousScreen, removeFromStack: true);
-            var activityName = activity.gameObject.name;
-            Object.Destroy(activity.gameObject);
-            this.activityToEntry.Remove(activity, out var entry);
-            entry.Views.ForEach(view => view.OnDispose());
+            this.Hide(activity);
+            if (!this.activityToViews.Remove(activity, out var views)) return;
             if (this.activityToPrefab.Remove(activity, out var prefab))
             {
                 this.prefabToActivity.Remove(prefab);
@@ -213,20 +192,13 @@ namespace UniT.UI
                 this.assetsManager.Unload(name);
                 this.keyToPrefab.Remove(name);
             }
-            this.logger.Debug($"Dispose {activityName}");
+            var activityName = activity.gameObject.name;
+            Object.Destroy(activity.gameObject);
+            views.ForEach(view => view.OnDispose());
+            this.disposed?.Invoke(activity, views);
+            this.logger.Debug($"Disposed {activityName}");
         }
 
         #endregion
-
-        private sealed class ActivityEntry
-        {
-            public IReadOnlyList<IView> Views { get; }
-            public ActivityType?        Type  { get; set; }
-
-            public ActivityEntry(IReadOnlyList<IView> views)
-            {
-                this.Views = views;
-            }
-        }
     }
 }

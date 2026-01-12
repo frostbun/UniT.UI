@@ -3,6 +3,7 @@ namespace UniT.UI
 {
     public interface IActivity : IView
     {
+        public ActivityType Type { get; }
     }
 
     public interface IActivityWithoutParams : IActivity, IViewWithoutParams
