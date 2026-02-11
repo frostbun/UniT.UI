@@ -2,7 +2,6 @@
 #nullable enable
 namespace UniT.UI.DI
 {
-    using UniT.DI;
     using UniT.Logging.DI;
     using UniT.ResourceManagement.DI;
     using VContainer;
