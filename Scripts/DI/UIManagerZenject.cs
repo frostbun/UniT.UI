@@ -4,6 +4,7 @@ namespace UniT.UI.DI
 {
     using UniT.Logging.DI;
     using UniT.ResourceManagement.DI;
+    using UnityEngine.EventSystems;
     using Zenject;
 
     public static class UIManagerZenject
@@ -15,6 +16,7 @@ namespace UniT.UI.DI
             container.BindLoggerManager();
             container.BindAssetsManager();
             container.Bind<RootUICanvas>().FromComponentInNewPrefabResource(nameof(RootUICanvas)).AsSingle();
+            container.Bind<EventSystem>().FromComponentInNewPrefabResource(nameof(EventSystem)).AsSingle();
             container.BindInterfacesTo<UIManager>().AsSingle();
         }
     }

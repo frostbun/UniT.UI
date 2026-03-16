@@ -8,6 +8,8 @@ namespace UniT.UI
     using UniT.Extensions;
     using UniT.Logging;
     using UniT.ResourceManagement;
+    using UnityEngine;
+    using UnityEngine.EventSystems;
     using UnityEngine.Scripting;
     using ILogger = UniT.Logging.ILogger;
     using Object = UnityEngine.Object;
@@ -23,10 +25,12 @@ namespace UniT.UI
         #region Constructor
 
         private readonly RootUICanvas         canvas;
+        private readonly EventSystem          eventSystem;
         private readonly IDependencyContainer container;
         private readonly IAssetsManager       assetsManager;
         private readonly ILogger              logger;
 
+        private readonly Transform                                   root              = new GameObject(nameof(UIManager)).DontDestroyOnLoad().transform;
         private readonly HashSet<IActivity>                          showingActivities = new HashSet<IActivity>();
         private readonly Dictionary<object, IActivity>               keyToPrefab       = new Dictionary<object, IActivity>();
         private readonly Dictionary<IActivity, IActivity>            prefabToActivity  = new Dictionary<IActivity, IActivity>();
@@ -35,12 +39,15 @@ namespace UniT.UI
         private readonly Dictionary<IActivity, IReadOnlyList<IView>> activityToViews   = new Dictionary<IActivity, IReadOnlyList<IView>>();
 
         [Preserve]
-        public UIManager(RootUICanvas canvas, IDependencyContainer container, IAssetsManager assetsManager, ILoggerManager loggerManager)
+        public UIManager(RootUICanvas canvas, EventSystem eventSystem, IDependencyContainer container, IAssetsManager assetsManager, ILoggerManager loggerManager)
         {
-            this.canvas        = canvas;
-            this.container     = container;
-            this.assetsManager = assetsManager;
-            this.logger        = loggerManager.GetLogger(this);
+            this.canvas                  = canvas;
+            this.eventSystem             = eventSystem;
+            this.container               = container;
+            this.assetsManager           = assetsManager;
+            this.logger                  = loggerManager.GetLogger(this);
+            canvas.transform.parent      = this.root;
+            eventSystem.transform.parent = this.root;
             this.logger.Debug("Constructed");
         }
 
@@ -60,6 +67,22 @@ namespace UniT.UI
         IEnumerable<IActivity> IUIManager.ShowingOverlays => this.showingActivities.Where(activity => activity.Type is ActivityType.Overlay);
 
         IEnumerable<IActivity> IUIManager.ShowingOverlayPopups => this.showingActivities.Where(activity => activity.Type is ActivityType.OverlayPopup);
+
+        void IUIManager.LockInteraction()
+        {
+            if (++this.lockCount != 1) return;
+            this.eventSystem.enabled = false;
+            this.logger.Debug("Interaction locked");
+        }
+
+        void IUIManager.UnlockInteraction(bool force)
+        {
+            if (this.lockCount <= 0) return;
+            if (force) this.lockCount = 1;
+            if (--this.lockCount != 0) return;
+            this.eventSystem.enabled = true;
+            this.logger.Debug("Interaction unlocked");
+        }
 
         TActivity IUIManager.Register<TActivity>(TActivity activity)
         {
@@ -116,6 +139,8 @@ namespace UniT.UI
         private Action<IActivity, IReadOnlyList<IView>>? shown;
         private Action<IActivity, IReadOnlyList<IView>>? hidden;
         private Action<IActivity, IReadOnlyList<IView>>? disposed;
+
+        private int lockCount;
 
         private void Initialize(IActivity activity)
         {

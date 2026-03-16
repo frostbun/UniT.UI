@@ -4,6 +4,7 @@ namespace UniT.UI.DI
 {
     using UniT.Logging.DI;
     using UniT.ResourceManagement.DI;
+    using UnityEngine.EventSystems;
     using VContainer;
 
     public static class UIManagerVContainer
@@ -15,6 +16,7 @@ namespace UniT.UI.DI
             builder.RegisterLoggerManager();
             builder.RegisterAssetsManager();
             builder.RegisterComponentInNewPrefabResource<RootUICanvas>(nameof(RootUICanvas), Lifetime.Singleton);
+            builder.RegisterComponentInNewPrefabResource<EventSystem>(nameof(EventSystem), Lifetime.Singleton);
             builder.Register<UIManager>(Lifetime.Singleton).AsImplementedInterfaces();
         }
     }

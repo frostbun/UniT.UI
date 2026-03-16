@@ -29,6 +29,10 @@ namespace UniT.UI
 
         public IEnumerable<IActivity> ShowingOverlayPopups { get; }
 
+        public void LockInteraction();
+
+        public void UnlockInteraction(bool force = false);
+
         public TActivity Register<TActivity>(TActivity activity) where TActivity : IActivity;
 
         public TActivity Get<TActivity>(IActivity prefab) where TActivity : IActivity;

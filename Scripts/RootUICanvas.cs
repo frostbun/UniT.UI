@@ -15,7 +15,6 @@ namespace UniT.UI
 
         private void Awake()
         {
-            DontDestroyOnLoad(this);
             this.Hiddens       = this.CreateChild(nameof(this.Hiddens));
             this.Screens       = this.CreateChild(nameof(this.Screens));
             this.Popups        = this.CreateChild(nameof(this.Popups));
