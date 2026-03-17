@@ -30,13 +30,13 @@ namespace UniT.UI
         private readonly IAssetsManager       assetsManager;
         private readonly ILogger              logger;
 
-        private readonly Transform                                   root              = new GameObject(nameof(UIManager)).DontDestroyOnLoad().transform;
-        private readonly HashSet<IActivity>                          showingActivities = new HashSet<IActivity>();
-        private readonly Dictionary<object, IActivity>               keyToPrefab       = new Dictionary<object, IActivity>();
-        private readonly Dictionary<IActivity, IActivity>            prefabToActivity  = new Dictionary<IActivity, IActivity>();
-        private readonly Dictionary<IActivity, object>               activityToKey     = new Dictionary<IActivity, object>();
-        private readonly Dictionary<IActivity, IActivity>            activityToPrefab  = new Dictionary<IActivity, IActivity>();
-        private readonly Dictionary<IActivity, IReadOnlyList<IView>> activityToViews   = new Dictionary<IActivity, IReadOnlyList<IView>>();
+        private readonly Transform                        root              = new GameObject(nameof(UIManager)).DontDestroyOnLoad().transform;
+        private readonly HashSet<IActivity>               showingActivities = new HashSet<IActivity>();
+        private readonly Dictionary<object, IActivity>    keyToPrefab       = new Dictionary<object, IActivity>();
+        private readonly Dictionary<IActivity, IActivity> prefabToActivity  = new Dictionary<IActivity, IActivity>();
+        private readonly Dictionary<IActivity, object>    activityToKey     = new Dictionary<IActivity, object>();
+        private readonly Dictionary<IActivity, IActivity> activityToPrefab  = new Dictionary<IActivity, IActivity>();
+        private readonly Dictionary<IActivity, IView[]>   activityToViews   = new Dictionary<IActivity, IView[]>();
 
         [Preserve]
         public UIManager(RootUICanvas canvas, EventSystem eventSystem, IDependencyContainer container, IAssetsManager assetsManager, ILoggerManager loggerManager)
@@ -94,7 +94,7 @@ namespace UniT.UI
 
         TActivity IUIManager.Get<TActivity>(object key)
         {
-            var prefab   = this.keyToPrefab.GetOrAdd(key, () => this.assetsManager.LoadComponent<IActivity>(key));
+            var prefab   = this.keyToPrefab.GetOrAdd(key, state => state.assetsManager.LoadComponent<IActivity>(state.key), (this.assetsManager, key));
             var activity = this.Get<TActivity>(prefab);
             this.activityToKey.TryAdd(activity, key);
             return activity;
@@ -103,7 +103,7 @@ namespace UniT.UI
         #if UNIT_UNITASK
         async UniTask<TActivity> IUIManager.GetAsync<TActivity>(object key, IProgress<float>? progress, CancellationToken cancellationToken)
         {
-            var prefab   = await this.keyToPrefab.GetOrAddAsync(key, () => this.assetsManager.LoadComponentAsync<IActivity>(key, progress, cancellationToken));
+            var prefab   = await this.keyToPrefab.GetOrAddAsync(key, state => state.assetsManager.LoadComponentAsync<IActivity>(state.key, state.progress, state.cancellationToken), (this.assetsManager, key, progress, cancellationToken));
             var activity = this.Get<TActivity>(prefab);
             this.activityToKey.TryAdd(activity, key);
             return activity;
@@ -146,26 +146,26 @@ namespace UniT.UI
         {
             var views = activity.gameObject.GetComponentsInChildren<IView>();
             this.activityToViews.Add(activity, views);
-            views.ForEach(view =>
+            foreach (var view in views.AsSpan())
             {
                 view.Container = this.container;
                 view.Manager   = this;
                 view.Activity  = activity;
-            });
-            views.ForEach(view => view.OnInitialize());
+            }
+            foreach (var view in views.AsSpan()) view.OnInitialize();
             this.initialized?.Invoke(activity, views);
             this.logger.Debug($"Initialized {activity.gameObject.name}");
         }
 
         private TActivity Get<TActivity>(IActivity prefab)
         {
-            return (TActivity)this.prefabToActivity.GetOrAdd(prefab, () =>
+            return (TActivity)this.prefabToActivity.GetOrAdd(prefab, state =>
             {
-                var activity = Object.Instantiate(prefab.gameObject, this.canvas.Hiddens).GetComponent<IActivity>();
-                this.Initialize(activity);
-                this.activityToPrefab.Add(activity, prefab);
+                var activity = Object.Instantiate(state.prefab.gameObject, state.@this.canvas.Hiddens).GetComponent<IActivity>();
+                state.@this.Initialize(activity);
+                state.@this.activityToPrefab.Add(activity, state.prefab);
                 return activity;
-            });
+            }, (@this: this, prefab));
         }
 
         private void Show(IActivity activity, object? @params, bool force)
@@ -189,7 +189,7 @@ namespace UniT.UI
             }, false);
             activity.transform.SetAsLastSibling();
             var views = this.activityToViews[activity];
-            views.ForEach(view => view.OnShow());
+            foreach (var view in views.AsSpan()) view.OnShow();
             this.shown?.Invoke(activity, views);
             this.logger.Debug($"Shown {activity.gameObject.name}");
         }
@@ -199,7 +199,7 @@ namespace UniT.UI
             if (!this.showingActivities.Remove(activity)) return;
             activity.transform.SetParent(this.canvas.Hiddens, false);
             var views = this.activityToViews[activity];
-            views.ForEach(view => view.OnHide());
+            foreach (var view in views.AsSpan()) view.OnHide();
             this.hidden?.Invoke(activity, views);
             this.logger.Debug($"Hidden {activity.gameObject.name}");
         }
@@ -219,7 +219,7 @@ namespace UniT.UI
             }
             var activityName = activity.gameObject.name;
             Object.Destroy(activity.gameObject);
-            views.ForEach(view => view.OnDispose());
+            foreach (var view in views.AsSpan()) view.OnDispose();
             this.disposed?.Invoke(activity, views);
             this.logger.Debug($"Disposed {activityName}");
         }
