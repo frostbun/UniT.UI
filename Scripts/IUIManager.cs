@@ -37,7 +37,9 @@ namespace UniT.UI
 
         public TActivity Get<TActivity>(IActivity prefab) where TActivity : IActivity;
 
+        #if !UNITY_WEBGL
         public TActivity Get<TActivity>(object key) where TActivity : IActivity;
+        #endif
 
         public void Show<TActivity>(TActivity activity, bool force = false) where TActivity : IActivityWithoutParams;
 
@@ -49,7 +51,9 @@ namespace UniT.UI
 
         #region Implicit Key
 
+        #if !UNITY_WEBGL
         public TActivity Get<TActivity>() where TActivity : IActivity => this.Get<TActivity>(typeof(TActivity).GetKey());
+        #endif
 
         #endregion
 

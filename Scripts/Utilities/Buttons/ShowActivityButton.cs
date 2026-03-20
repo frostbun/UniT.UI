@@ -27,6 +27,7 @@ namespace UniT.UI.Utilities
         }
     }
 
+    #if !UNITY_WEBGL
     [RequireComponent(typeof(Button))]
     public abstract class ShowActivityByKeyButton<TActivity> : View where TActivity : IActivityWithoutParams
     {
@@ -69,4 +70,5 @@ namespace UniT.UI.Utilities
             this.GetComponent<Button>().onClick.AddListener(() => this.Manager.Show(this.Manager.Get<TActivity>(this.name), this.@params));
         }
     }
+    #endif
 }

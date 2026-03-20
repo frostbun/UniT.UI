@@ -92,6 +92,7 @@ namespace UniT.UI
 
         TActivity IUIManager.Get<TActivity>(IActivity prefab) => this.Get<TActivity>(prefab);
 
+        #if !UNITY_WEBGL
         TActivity IUIManager.Get<TActivity>(object key)
         {
             var prefab   = this.keyToPrefab.GetOrAdd(key, state => state.assetsManager.LoadComponent<IActivity>(state.key), (this.assetsManager, key));
@@ -99,6 +100,7 @@ namespace UniT.UI
             this.activityToKey.TryAdd(activity, key);
             return activity;
         }
+        #endif
 
         #if UNIT_UNITASK
         async UniTask<TActivity> IUIManager.GetAsync<TActivity>(object key, IProgress<float>? progress, CancellationToken cancellationToken)
