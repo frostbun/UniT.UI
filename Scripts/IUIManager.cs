@@ -30,7 +30,7 @@ namespace UniT.UI
 
         public void UnlockInteraction(bool force = false);
 
-        public void Load(IView prefab);
+        public void Load(IView prefab, int count = 1);
 
         public UniTask LoadAsync(object key, int count = 1, IProgress<float>? progress = null, CancellationToken cancellationToken = default);
 

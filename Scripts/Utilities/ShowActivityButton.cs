@@ -2,9 +2,7 @@
 namespace UniT.UI.Utilities
 {
     using UnityEngine;
-    using UnityEngine.UI;
 
-    [RequireComponent(typeof(Button))]
     public abstract class ShowActivityByPrefabButton<TActivity> : GenericButton where TActivity : IActivityWithoutParams
     {
         [SerializeField] private TActivity prefab = default!;
@@ -16,7 +14,6 @@ namespace UniT.UI.Utilities
         }
     }
 
-    [RequireComponent(typeof(Button))]
     public abstract class ShowActivityByPrefabButton<TActivity, TParams> : GenericButton where TActivity : IActivityWithParams<TParams> where TParams : notnull
     {
         [SerializeField] private TActivity prefab = default!;
@@ -29,7 +26,6 @@ namespace UniT.UI.Utilities
         }
     }
 
-    [RequireComponent(typeof(Button))]
     public abstract class ShowActivityByKeyButton<TActivity> : GenericButton where TActivity : IActivityWithoutParams
     {
         [SerializeField] private string key = string.Empty;
@@ -41,7 +37,6 @@ namespace UniT.UI.Utilities
         }
     }
 
-    [RequireComponent(typeof(Button))]
     public abstract class ShowActivityByKeyButton<TActivity, TParams> : GenericButton where TActivity : IActivityWithParams<TParams> where TParams : notnull
     {
         [SerializeField] private string key = string.Empty;
@@ -54,7 +49,6 @@ namespace UniT.UI.Utilities
         }
     }
 
-    [RequireComponent(typeof(Button))]
     public abstract class ShowActivityByTypeButton<TActivity> : GenericButton where TActivity : IActivityWithoutParams
     {
         [SerializeField] private ActivityShowMode mode = ActivityShowMode.Single;
@@ -65,7 +59,6 @@ namespace UniT.UI.Utilities
         }
     }
 
-    [RequireComponent(typeof(Button))]
     public abstract class ShowActivityByTypeButton<TActivity, TParams> : GenericButton where TActivity : IActivityWithParams<TParams> where TParams : notnull
     {
         [SerializeReference] private TParams @params = default!;

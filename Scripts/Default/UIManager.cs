@@ -49,7 +49,7 @@ namespace UniT.UI
             this.activityRoots = Enum.GetValues(typeof(ActivityType))
                 .Cast<ActivityType>()
                 .ToDictionary(
-                    type => type,
+                    Item.S,
                     type =>
                     {
                         var child = new GameObject(type.ToString()).AddComponent<RectTransform>();
@@ -99,10 +99,10 @@ namespace UniT.UI
             this.logger.Debug("Interaction unlocked");
         }
 
-        void IUIManager.Load(IView prefab)
+        void IUIManager.Load(IView prefab, int count)
         {
             this.trackingPrefabs.Add(prefab.gameObject);
-            this.objectPoolManager.Load(prefab.gameObject);
+            this.objectPoolManager.Load(prefab.gameObject, count);
         }
 
         UniTask IUIManager.LoadAsync(object key, int count, IProgress<float>? progress, CancellationToken cancellationToken)
@@ -249,7 +249,7 @@ namespace UniT.UI
             }
             if (this.nextActivity is not null)
             {
-                view.Activity = this.nextActivity;
+                foreach (var child in children) child.Activity = this.nextActivity;
                 this.nextActivity = null;
             }
             foreach (var child in children) child.OnShow();
