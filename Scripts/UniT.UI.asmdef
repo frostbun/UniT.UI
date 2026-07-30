@@ -3,6 +3,7 @@
   "overrideReferences": true,
   "references": [
     "UniT.Extensions",
+    "UniT.Extensions.UniTask",
     "UniT.DI",
     "UniTask"
   ]

@@ -2,6 +2,7 @@
 namespace UniT.UI
 {
     using System;
+    using System.Threading;
     using DI;
     using UnityEngine;
 
@@ -16,6 +17,8 @@ namespace UniT.UI
         public GameObject gameObject { get; }
 
         public Transform transform { get; }
+
+        public CancellationToken GetCancellationTokenOnDisable();
     }
 
     public interface IViewWithoutParams : IView

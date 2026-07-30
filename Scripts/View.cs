@@ -2,7 +2,9 @@
 namespace UniT.UI
 {
     using System;
+    using System.Threading;
     using DI;
+    using Extensions;
     using UnityEngine;
 
     [RequireComponent(typeof(RectTransform))]
@@ -35,6 +37,8 @@ namespace UniT.UI
         protected virtual void OnHide() { }
 
         protected virtual void OnDispose() { }
+
+        public CancellationToken GetCancellationTokenOnDisable() => UnityUniTaskExtensions.GetCancellationTokenOnDisable(this);
     }
 
     public abstract class View : BaseView, IViewWithoutParams
