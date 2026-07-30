@@ -49,7 +49,7 @@ namespace UniT.UI
             this.activityRoots = Enum.GetValues(typeof(ActivityType))
                 .Cast<ActivityType>()
                 .ToDictionary(
-                    Item.S,
+                    Item.Identity,
                     type =>
                     {
                         var child = new GameObject(type.ToString()).AddComponent<RectTransform>();
