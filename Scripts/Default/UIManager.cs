@@ -238,7 +238,7 @@ namespace UniT.UI
                 if (type is ActivityType.Screen)
                 {
                     this.showingActivities.Where(static activity => activity.Type is not ActivityType.Overlay)
-                        .SafeForEach(static (activity, objectPoolManager) => objectPoolManager.Recycle(activity.gameObject), this.objectPoolManager);
+                        .SnapshotForEach(static (activity, objectPoolManager) => objectPoolManager.Recycle(activity.gameObject), this.objectPoolManager);
                 }
                 view.transform.SetParent(this.activityRoots[type], false);
             }
